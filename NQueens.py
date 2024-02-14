@@ -14,17 +14,6 @@ def NQueens(n):
   m = 0
   if l <= n:
     test(a, b, c, l, m, n, 1, x)
-  else:
-    print("Solution: " + str(m) + " -> " + str(x) + "\n")
-    m, l, t = backtrack(a, b, c, l, m+1, n, x)
-    m = test(a, b, c, l, m, n, t, x)
-
-def resetState(a, b, c, l, n, x):
-  t = x[l]
-  c[t - l + n] = 0
-  b[t + l - 1] = 0
-  a[t] = 0
-  return t
 
 def test(a, b, c, l, m, n, t, x):
   while True:
@@ -66,6 +55,14 @@ def backtrack(a, b, c, l, m, n, x):
       t = t + 1
       break
   return m, l, t
+
+
+def resetState(a, b, c, l, n, x):
+  t = x[l]
+  c[t - l + n] = 0
+  b[t + l - 1] = 0
+  a[t] = 0
+  return t
 
 if __name__ == "__main__":
   NQueens(8)
