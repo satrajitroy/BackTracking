@@ -5,41 +5,35 @@ def backtrack(n, k, j, i, reject, domain, count):
   if l <= n:
     test(k, l, 0, n, 1, j, i, [0 for i in range(n + 1)], reject, domain, count)
 
-
 def test(k, l, m, n, t, j, i, x, reject, domain, count):
   while True:
     if reject(l, n, t, x):
       if domain(t, n, k):
         t = t + 1
       else:
-        m, l, t = revert(k, l, m, n, x, domain)
+        m, l, t = revert(k, l - 1, m, n, x, domain)
     else:
       l = set_state(l, t, x)
       if count(l, n, k):
         t = i
       else:
         print("Solution: " + str(m) + " -> " + str(x[1:j + 1]) + "\n")
-        m, l, t = revert(k, l, m + 1, n, x, domain)
-
+        m, l, t = revert(k, l - 1, m + 1, n, x, domain)
 
 def set_state(l, t, x):
   x[l] = t
   return l + 1
 
-
 def revert(k, l, m, n, x, domain):
-  while True:
-    l = l - 1
-    if l <= 0:
-      print("Solutions: " + str(m))
-      sys.exit()
+  if l <= 0:
+    sys.exit(0)
 
-    t = reset_state(l, n, x)
-    if domain(t, n, k):
-      t = t + 1
-      break
-  return m, l, t
+  t = reset_state(l, n, x)
+  if domain(t, n, k):
+    t = t + 1
+    return m, l, t
 
+  return revert(k, l - 1, m, l, n, x)
 
 def reset_state(l, n, x):
   return x[l]
