@@ -65,4 +65,4 @@ def resetState(a, b, c, l, n, x):
   return t
 
 if __name__ == "__main__":
-  NQueens(8)
+  NQueens(20)
