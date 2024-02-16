@@ -1,40 +1,3 @@
-import sys
-
-def NQueens(n):
-  m = n + 1
-  l = 2 * n
-
-  a = [0 for i in range(0, m)]
-  b = [0 for i in range(0, l)]
-  c = [0 for i in range(0, l)]
-
-  x = [0 for i in range(m)]
-  l = 1
-
-  m = 0
-  if l <= n:
-    test(a, b, c, l, m, n, 1, x)
-
-def test(a, b, c, l, m, n, t, x):
-  while True:
-    if validate(a, b, c, l, n, t):
-        if t < n:
-          t = t + 1
-        else:
-          m, l, t = backtrack(a, b, c, l, m, n, x)
-    else:
-      l = setState(a, b, c, l, n, t, x)
-      if l <= n:
-        t = 1
-      else:
-        print("Solution: " + str(m) + " -> " + str(x) + "\n")
-        m, l, t = backtrack(a, b, c, l, m + 1, n, x)
-
-
-def validate(a, b, c, l, n, t):
-  return a[t] == 1 or b[t + l - 1] == 1 or c[t - l + n] == 1
-
-
 def setState(a, b, c, l, n, t, x):
   a[t] = 1
   b[t + l - 1] = 1
@@ -42,19 +5,6 @@ def setState(a, b, c, l, n, t, x):
   x[l] = t
   l = l + 1
   return l
-
-def backtrack(a, b, c, l, m, n, x):
-  while True:
-    l = l - 1
-    if l <= 0:
-      print("Solutions: " + str(m))
-      sys.exit()
-
-    t = resetState(a, b, c, l, n, x)
-    if t < n:
-      t = t + 1
-      break
-  return m, l, t
 
 
 def resetState(a, b, c, l, n, x):
@@ -64,5 +14,76 @@ def resetState(a, b, c, l, n, x):
   a[t] = 0
   return t
 
+
+def test(n, k, reject, domain, count):
+  a = [0] * 21
+  b = [0] * 41
+  c = [0] * 41
+  x = [0] * 21
+  t = 1
+  l = 1
+  m = 0
+  while True:
+    if reject(a, b, c, l, n, t, x):
+      if domain(t, n, k):
+        t = t + 1
+      else:
+        m, l, t = revert(a, b, c, l, m, n, k, x, domain)
+    else:
+      l = setState(a, b, c, l, n, t, x)
+      if count(l, n, k):
+        t = 1
+      else:
+        if m > 0 and m % (1024 * 1024) == 0:
+          print("Solution: " + str(m) + "\n")
+          break
+
+        m, l, t = revert(a, b, c, l, m + 1, n, k, x, domain)
+
+    if l < 1:
+      break
+
+
+def revert(a, b, c, l, m, n, k, x, domain):
+  while True:
+    l = l - 1
+    if l < 1:
+      return m, l, x[0]
+
+    t = resetState(a, b, c, l, n, x)
+    if domain(t, n, k):
+      t = t + 1
+      break
+  return m, l, t
+
+
 if __name__ == "__main__":
-  NQueens(20)
+  # n queens
+  test(20, 0, lambda a, b, c, l, n, t, x: a[t] == 1 or b[t + l - 1] == 1 or c[t - l + n] == 1,
+       lambda t, n, k: t < n,
+       lambda l, n, k: l <= n
+       )
+
+  # stats = pstats.Stats('/home/satrajit/.cache/JetBrains/PyCharm2023.3/snapshots/BackTracking/BackTracking.pstat')
+  # stats.sort_stats('cumulative')
+  # stats.print_stats()
+
+  # test(12, 6, lambda a, b, c, l, n, t, x: False, lambda t, n, k: t < n,
+  #      lambda t, n, k: t <= k)  # n-tuple
+  # test(12, 6, lambda a, b, c, l, n, t, x: any(s == t for s in x[1:l]),
+  #      lambda t, n, k: t < n,
+  #      lambda t, n, k: t <= k)  ##permute
+  # test(12, 6, lambda a, b, c, l, n, t, x: any(s <= t for s in x[1:l]),
+  #      lambda t, n, k: t < n,
+  #      lambda t, n, k: t <= k)  ##combine
+  # test(12, 12, lambda a, b, c, l, n, t, x: t > 1 + max(x[0:l]),
+  #      lambda t, n, k: bool(t < k),
+  #      lambda l, n, k: l <= n)  # partition
+  # test(20, 1,
+  #      lambda a, b, c, l, n, t, x: (l > 1 and t > x[l - 1]) or
+  #                         ((t + sum(x[i] for i in range(1, l))) > n) or
+  #                         (n - (n - l) * t) > (t + sum(x[i] for i in range(1, l))) or
+  #                         False,
+  #      lambda t, n, k: t < 1 + n // k,
+  #      lambda l, n, k: l <= n)  # integer partition
+
