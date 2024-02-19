@@ -227,25 +227,25 @@ def reset():
     i = 0
     # Define BytesIO stream to write.
     bytes = io.BytesIO()
-    k = randint(4, 8)
+    k = randint(5, 8)
     prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
     n_val = randint(4, 8)
     o = [str(n_val), prefix]
     bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
 
+    m_vals = sample(range(1,n_val+1), randint(n_val//3,n_val*5//4))
     seen = set()  # keep track of seen lists
-    for i in range(1, 2**n_val// 2) :
-        m_val = randint(1, n_val + 1)
+    for i in range(3*n_val) :
+        m_val = m_vals[i % len(m_vals)]
         o = [str(m_val)]
-
-        while True:
-            sorted_list = sorted(sample(range(1, m_val + 1), randint(1, m_val)))
+        #while True:
+        sorted_list = sorted(sample(range(1, n_val + 1), m_val))
             # If the list hasn't been seen before, exit the loop
-            if tuple(sorted_list) not in seen:
-                break
+            #if tuple(sorted_list) not in seen:
+            #    break
         # Add the list to the set of seen lists
-        seen.add(tuple(sorted_list))
+        #seen.add(tuple(sorted_list))
 
         o.append(str(sorted_list))
         bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
@@ -255,6 +255,8 @@ def reset():
     # now you can read the byte stream like a normal file
     for line in bytes:
         print(line.decode())  # decode bytes to string
+		
+    return bytes
 
 if __name__ == "__main__":
     reset()
