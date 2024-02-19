@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+message RandomData {
+  string random_str = 1;
+  repeated Seq sequences = 2;
+
+  message Seq {
+    int32 m_val = 1;
+    repeated int32 values = 2;
+  }
+}

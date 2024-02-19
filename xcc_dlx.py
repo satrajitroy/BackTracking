@@ -1,3 +1,8 @@
+import io
+import string
+from random import random, choices, randint, sample
+
+
 # step 1:
 #    setup #encode problem in memory
 #    N -< # items
@@ -197,6 +202,7 @@ def setup():
 
     while True:
         s = f.readline()
+
         if s == '':
             print(N)
             break
@@ -215,3 +221,40 @@ def setup():
         p = p + int(o[0]) + 1
         top[p] = -M
         up[p] = p - int(o[0])
+
+def reset():
+    n = -1
+    i = 0
+    # Define BytesIO stream to write.
+    bytes = io.BytesIO()
+    k = randint(4, 8)
+    prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
+
+    n_val = randint(4, 8)
+    o = [str(n_val), prefix]
+    bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
+
+    seen = set()  # keep track of seen lists
+    for i in range(1, 2**n_val// 2) :
+        m_val = randint(1, n_val + 1)
+        o = [str(m_val)]
+
+        while True:
+            sorted_list = sorted(sample(range(1, m_val + 1), randint(1, m_val)))
+            # If the list hasn't been seen before, exit the loop
+            if tuple(sorted_list) not in seen:
+                break
+        # Add the list to the set of seen lists
+        seen.add(tuple(sorted_list))
+
+        o.append(str(sorted_list))
+        bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
+
+    bytes.seek(0)  # reset the stream position
+
+    # now you can read the byte stream like a normal file
+    for line in bytes:
+        print(line.decode())  # decode bytes to string
+
+if __name__ == "__main__":
+    reset()
