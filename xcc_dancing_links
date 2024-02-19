@@ -1,0 +1,109 @@
+# step 1:
+#    setup #encode problem in memory
+#    N -< # items
+#    Z <- & last spacer
+#    l <- 0
+
+# step 2:
+#    if r(0) == 0:
+#         visit x[1] ... x[l-1]
+#          go to step 8
+
+# step 3:
+#    mrv i <- r(0) ... r(i[j]), r(i[t] == 0 #(use MRV heuristic)
+
+# step 4:
+#    cover i
+#    x[l] <- d(i)
+
+# step 5:
+#    if x[l] == :
+#        go to step 7
+#    else:
+#        p <- x[l] + 1;
+#        while p != x[l]:
+#            j <- t(p);
+#            if j <= 0:
+#                p <- u(p)
+#            else(if j > 0):
+#                cover j
+#                p++
+#                l++
+#                go to step 2
+# step 6:
+#    p <- x[l] - 1;
+#    while p != x[l]
+#        j <- t(p);
+#        if j <= 0:
+#            p <- d(p)
+#        else: #(j > 0)
+#            uncover j
+#            p--
+#            i <- t(x[l])
+#            x[l] <- d(x[l])
+#            go to step 5
+# step 7: uncover i
+# step 8: if l == 0 exit else l--; go to step 6
+
+# cover i:
+#    p <- d(i)
+#    while p != i:
+#        hide p
+#        p <- d(p)
+#    l <- l(i)
+#    r <- r(i)
+#    r(l) <- r
+#    l(r) <- l
+
+# hide i:
+#    q <- p + 1
+#    while q != p:
+#        x <- t(q)
+#        u <- u(q)
+#        d <- d(q)
+#        if x <= 0:
+#            q <- u
+#        else: #(x > 0)
+#            d(u) <- d
+#            u(d) <- u
+#            len(x)--
+#            q++
+
+# uncover i:
+#    l <- l(i)
+#    r <- r(i)
+#    r(l) <- i
+#    l(r) <- i
+#    p <- u(i)
+#    while p != i:
+#        unhide p
+#        p <- u(p)
+
+# unhide i:
+#    q <- p - 1
+#    while q != p:
+#        x <- t(q)
+#        u <- u(q)
+#        d <- d(q)
+#        if x<= 0:
+#            q <- d
+#        else: #(x > 0)
+#            d(u) <- q
+#            u(d) <- q
+#            len(x)++
+#            q--
+
+# mrv:
+#    theta <- sys.maxsize
+#    p <- r(0)
+#    while p != 0:
+#        lamda <- len(p)
+#        if lamda < theta:
+#            theta <- lamda
+#            i <- p
+#            p <- r(p)
+#            if theta == 0:
+#                return i
+
+# setup:
+#
