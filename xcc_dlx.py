@@ -1,6 +1,6 @@
 import io
 import string
-from random import random, choices, randint, sample
+from random import choices, randint, sample
 
 
 # step 1:
@@ -159,37 +159,42 @@ from random import random, choices, randint, sample
 #        top(p) <- -M
 #        up(p) <- p - o[0]
 
-def setup():
+def setup(bytes):
     n = -1
     i = 0
-    f = open("input")  # open file
-    s = f.readline()  # read line
-    o = s.split(' ,')
 
-    opts = {}
-    left = {}
-    right = {}
-    length = {}
-    up = {}
-    down = {}
-    top = {}
+    bytes.seek(0)
+    s = bytes.readline().decode('utf-8').strip()  # read line
+    o = s.split(',')
+    m = int(o[0]) + 2
+    l = int(o[2]) if len(o) > 2 else m
 
-    for i in range(1, int(o[0]) + 1):
+    opts = ['']*m
+    left = [0]*m
+    right = [0]*m
+    length = [0]*m
+    up = [0]*2*m
+    down = [0]*2*m
+    top = [0]*2*m
+    N = 0
+
+    for i in range(0, m - 2):
         i += 1
         opts[i] = o[1] + str(i)
         left[i] = i - 1
-        right[i] = i
-        if i > int(o[2]):
+        right[i-1] = i
+        if i > l:
             n = i - 1
-        N = i
-        if n < 0:
-            n = N
-        left[N+1] = N
-        right[N] = N + 1
-        left[n+1] = N + 1
-        right[N+1] = n + 1
-        left[0] = n
-        right[n] = 0
+
+    N = i
+    if n < 0:
+        n = N
+    left[N+1] = N
+    right[N] = N + 1
+    left[n+1] = N + 1
+    right[N+1] = n + 1
+    left[0] = n
+    right[n] = 0
 
     for i in range(1, N + 1):
         length[i] = 0
@@ -201,14 +206,16 @@ def setup():
     top[p] = 0
 
     while True:
-        s = f.readline()
+        s = bytes.readline().decode('utf-8').strip()
 
         if s == '':
             print(N)
             break
-        o = s.split(' .')
-        for j in range(1, int(o[0]) + 1):
-            k = int(o[j])
+        o = s.split('.')
+        l = int(o[0]) + 1
+        t = [int(a) for a in o[1][1:-1].split(',')]
+        for j in range(1, l):
+            k = t[j-1]
             length[k] += 1
             q = up[k]
             up[p+j] = q
@@ -216,6 +223,7 @@ def setup():
             down[p+j] = k
             up[k] = p + j
             top[p+j] = k
+
         M += 1
         down[p] = p + int(o[0])
         p = p + int(o[0]) + 1
@@ -234,7 +242,7 @@ def reset():
     o = [str(n_val), prefix]
     bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
 
-    m_vals = sample(range(1,n_val+1), randint(n_val//3,n_val*5//4))
+    m_vals = sample(range(1,n_val+1), randint(n_val//3,n_val*4//5))
     seen = set()  # keep track of seen lists
     for i in range(3*n_val) :
         m_val = m_vals[i % len(m_vals)]
@@ -259,4 +267,5 @@ def reset():
     return bytes
 
 if __name__ == "__main__":
-    reset()
+    bytes = reset()
+    setup(bytes)
