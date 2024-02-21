@@ -269,5 +269,5 @@ def generate(N):
     return bytes
 
 if __name__ == "__main__":
-    bytes = generate(5000)
+    bytes = generate(8000)
     (N,p) = setup(bytes)
