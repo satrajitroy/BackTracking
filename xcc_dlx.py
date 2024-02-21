@@ -232,7 +232,7 @@ def setup(bytes):
         top[p] = -M
         up[p] = p - int(o[0])
 
-def reset():
+def generate():
     n = -1
     i = 0
     # Define BytesIO stream to write.
@@ -262,5 +262,5 @@ def reset():
     return bytes
 
 if __name__ == "__main__":
-    bytes = reset()
+    bytes = generate()
     setup(bytes)
