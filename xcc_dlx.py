@@ -2,7 +2,6 @@ import io
 import string
 from random import choices, randint, sample
 
-
 # step 1:
 #    setup #encode problem in memory
 #    N -< # items
@@ -228,21 +227,29 @@ def setup(bytes):
         M += 1
         down[p] = p + int(o[0])
         p = p + int(o[0]) + 1
-        print(str(N) + ' ' + str(L) + ' ' + str(p))
         top[p] = -M
         up[p] = p - int(o[0])
 
-def generate():
+    print('left: '+str(len(left))) #+' '+str(left))
+    print('right: '+str(len(right))) #+' '+str(right))
+    print('top: '+str(len(top))) #+' '+str(top))
+    print('up:'+str(len(up))) #+' '+str(up))
+    print('down: '+str(len(down))) #+' '+str(down))
+    print('length: '+str(len(length))) #+' '+str(length))
+    return (N, p)
+
+def generate(N):
     n = -1
     i = 0
     # Define BytesIO stream to write.
     bytes = io.BytesIO()
-    k = randint(5, 8)
+    k = randint(4,8)
     prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
-    n_val = randint(4, 8)
-    o_val = randint(n_val, 5 * n_val)
-    m_vals = [tuple(sample(range(1,n_val+1), randint(n_val//3,n_val*8//9))) for _ in range(o_val)]
+    n_val = randint(N,N)
+    o_val = randint(n_val, n_val)
+    m_vals = [tuple(sample(range(1,n_val+1), randint(n_val//3,n_val*2//3)))
+	for _ in range(o_val)]
     m_vals = set(m_vals)
     o = [str(n_val), prefix, str(o_val), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
     bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
@@ -256,11 +263,11 @@ def generate():
     bytes.seek(0)  # reset the stream position
 
     # now you can read the byte stream like a normal file
-    for line in bytes:
-        print(line.decode())  # decode bytes to string
+    #for line in bytes:
+    #    print(line.decode())  # decode bytes to string
 		
     return bytes
 
 if __name__ == "__main__":
-    bytes = generate()
-    setup(bytes)
+    bytes = generate(5000)
+    (N,p) = setup(bytes)
