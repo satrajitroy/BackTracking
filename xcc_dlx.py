@@ -167,15 +167,16 @@ def setup(bytes):
     s = bytes.readline().decode('utf-8').strip()  # read line
     o = s.split(',')
     m = int(o[0]) + 2
-    l = int(o[2]) if len(o) > 2 else m
+    l = int(o[2])
+    L = int(o[3])
 
     opts = ['']*m
     left = [0]*m
     right = [0]*m
     length = [0]*m
-    up = [0]*2*m
-    down = [0]*2*m
-    top = [0]*2*m
+    up = [0]*L
+    down = [0]*L
+    top = [0]*L
     N = 0
 
     for i in range(0, m - 2):
@@ -209,7 +210,7 @@ def setup(bytes):
         s = bytes.readline().decode('utf-8').strip()
 
         if s == '':
-            print(N)
+            print(str(N)+' '+str(L)+' '+str(p))
             break
         o = s.split('.')
         l = int(o[0]) + 1
@@ -227,6 +228,7 @@ def setup(bytes):
         M += 1
         down[p] = p + int(o[0])
         p = p + int(o[0]) + 1
+        print(str(N) + ' ' + str(L) + ' ' + str(p))
         top[p] = -M
         up[p] = p - int(o[0])
 
@@ -239,22 +241,15 @@ def reset():
     prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
     n_val = randint(4, 8)
-    o = [str(n_val), prefix]
+    o_val = randint(n_val, 5 * n_val)
+    m_vals = [tuple(sample(range(1,n_val+1), randint(n_val//3,n_val*8//9))) for _ in range(o_val)]
+    m_vals = set(m_vals)
+    o = [str(n_val), prefix, str(o_val), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
     bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
 
-    m_vals = sample(range(1,n_val+1), randint(n_val//3,n_val*4//5))
-    seen = set()  # keep track of seen lists
-    for i in range(3*n_val) :
-        m_val = m_vals[i % len(m_vals)]
-        o = [str(m_val)]
-        #while True:
-        sorted_list = sorted(sample(range(1, n_val + 1), m_val))
-            # If the list hasn't been seen before, exit the loop
-            #if tuple(sorted_list) not in seen:
-            #    break
-        # Add the list to the set of seen lists
-        #seen.add(tuple(sorted_list))
-
+    for m_val in m_vals :
+        o = [str(len(m_val))]
+        sorted_list = sorted(m_val)
         o.append(str(sorted_list))
         bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
 
