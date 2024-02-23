@@ -1,6 +1,16 @@
 import io
 import string
+from time import time_ns
+from psutil import virtual_memory
 from random import choices, randint, sample
+
+opts = []
+left = []
+right = []
+length = []
+up = []
+down = []
+top = []
 
 # step 1:
 #    setup #encode problem in memory
@@ -107,7 +117,7 @@ from random import choices, randint, sample
 #            i <- p
 #            p <- rightop(1)
 #            if theta == 0:
-#                return i
+#                return i    opts = ['']*m
 
 # setup:
 #    n <- -1
@@ -159,6 +169,7 @@ from random import choices, randint, sample
 #        up(p) <- p - o[0]
 
 def setup(bytes):
+    mem = virtual_memory().available
     n = -1
     i = 0
 
@@ -236,9 +247,11 @@ def setup(bytes):
     print('up:'+str(len(up))) #+' '+str(up))
     print('down: '+str(len(down))) #+' '+str(down))
     print('length: '+str(len(length))) #+' '+str(length))
+    print("Memory used: " +str(mem - virtual_memory().available))
     return (N, p)
 
 def generate(N):
+    mem = virtual_memory().available
     n = -1
     i = 0
     # Define BytesIO stream to write.
@@ -265,9 +278,29 @@ def generate(N):
     # now you can read the byte stream like a normal file
     #for line in bytes:
     #    print(line.decode())  # decode bytes to string
-		
+
+    print("Memory used: " +str(mem - virtual_memory().available))
     return bytes
 
 if __name__ == "__main__":
-    bytes = generate(8000)
+    now = time_ns()
+    mem = virtual_memory().available
+    bytes = generate(28672)
+    print("Time to generate: " + str(time_ns() - now) + " Serialized size: " + str(bytes.seek(0, io.SEEK_END)))
+    now = time_ns()
+    mem = virtual_memory().available
     (N,p) = setup(bytes)
+    print(str("Time to setup: " + str(time_ns() - now)))
+
+# With 28672 items and equal number of options
+# Memory used: 19443474432
+# Time to generate: 164322166020 Serialized size: 2722212417
+# 28672 411694073 411694072
+# left: 28674
+# right: 28674
+# top: 411694073
+# up:411694073
+# down: 411694073
+# length: 28674
+# Memory used: 49528496128
+# Time to setup: 120763156546
