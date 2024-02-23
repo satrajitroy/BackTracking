@@ -285,7 +285,7 @@ def generate(N):
 if __name__ == "__main__":
     now = time_ns()
     mem = virtual_memory().available
-    bytes = generate(28672)
+    bytes = generate(16384)
     print("Time to generate: " + str(time_ns() - now) + " Serialized size: " + str(bytes.seek(0, io.SEEK_END)))
     now = time_ns()
     mem = virtual_memory().available
@@ -304,3 +304,16 @@ if __name__ == "__main__":
 # length: 28674
 # Memory used: 49528496128
 # Time to setup: 120763156546
+
+# With 16384 items and equal number of options
+# Memory used: 6290378752
+# Time to generate: 51219485085 Serialized size: 850099481
+# 16384 134480223 134480222
+# left: 16386
+# right: 16386
+# top: 134480223
+# up:134480223
+# down: 134480223
+# length: 16386
+# Memory used: 16145252352
+# Time to setup: 39102953370
