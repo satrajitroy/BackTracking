@@ -2,6 +2,7 @@ import io
 import string
 from random import choices, randint, sample
 
+
 # step 1:
 #    setup #encode problem in memory
 #    N -< # items
@@ -59,6 +60,18 @@ from random import choices, randint, sample
 #    right(1) <- r
 #    left(1) <- l
 
+def cover(i):
+  global left, right, top, up, down, length
+  p = down[i]
+  while p != i:
+    hide(p)
+    p = down[p]
+
+  l = left[i]
+  r = right[i]
+  right[l] = r
+  left[r]  = l
+
 # hide i:
 #    q <- p + 1
 #    while q != p:
@@ -73,6 +86,21 @@ from random import choices, randint, sample
 #            len(x)--
 #            q++
 
+def hide(p):
+  global left, right, top, up, down, length
+  q = p + 1
+  while q != p:
+    x = top[q]
+    u = up[q]
+    d = down[q]
+    if x > 0:
+      down[u] = d
+      up[d] = u
+      length[x] -= 1
+      q += 1
+    else:
+      q = u
+
 # uncover i:
 #    l <- left(1)
 #    r <- right(1)
@@ -82,6 +110,17 @@ from random import choices, randint, sample
 #    while p != i:
 #        unhide p
 #        p <- up(1)
+
+def uncover(i):
+  l = left[i]
+  r = right[i]
+  right[l] = r
+  left[r]  = l
+
+  p = up[i]
+  while p != i:
+    unhide(p)
+    p = up[p]
 
 # unhide i:
 #    q <- p - 1
@@ -96,6 +135,20 @@ from random import choices, randint, sample
 #            up(1) <- q
 #            len(x)++
 #            q--
+
+def unhide(p):
+  q = p - 1
+  while q != p:
+    x = top[q]
+    u = up[q]
+    d = down[q]
+    if x > 0:
+      down[u] - q
+      up[d] = q
+      length[x] += 1
+      q -+ 1
+    else:
+      q = d
 
 # mrv:
 #    theta <- sys.maxsize
@@ -159,115 +212,112 @@ from random import choices, randint, sample
 #        up(p) <- p - o[0]
 
 def setup(bytes):
-    n = -1
-    i = 0
+  n = -1
+  i = 0
 
-    bytes.seek(0)
-    s = bytes.readline().decode('utf-8').strip()  # read line
-    o = s.split(',')
-    m = int(o[0]) + 2
-    l = int(o[2])
-    L = int(o[3])
+  bytes.seek(0)
+  s = bytes.readline().decode('utf-8').strip()  # read line
+  o = s.split(',')
+  m = int(o[0]) + 2
+  l = int(o[2])
+  L = int(o[3])
 
-    opts = ['']*m
-    left = [0]*m
-    right = [0]*m
-    length = [0]*m
-    up = [0]*L
-    down = [0]*L
-    top = [0]*L
-    N = 0
+  opts = [''] * m
+  left = [0] * m
+  right = [0] * m
+  length = [0] * m
+  up = [0] * L
+  down = [0] * L
+  top = [0] * L
+  N = 0
 
-    for i in range(0, m - 2):
-        i += 1
-        opts[i] = o[1] + str(i)
-        left[i] = i - 1
-        right[i-1] = i
-        if i > l:
-            n = i - 1
+  for i in range(0, m - 2):
+    i += 1
+    opts[i] = o[1] + str(i)
+    left[i] = i - 1
+    right[i - 1] = i
+    if i > l:
+      n = i - 1
 
-    N = i
-    if n < 0:
-        n = N
-    left[N+1] = N
-    right[N] = N + 1
-    left[n+1] = N + 1
-    right[N+1] = n + 1
-    left[0] = n
-    right[n] = 0
+  N = i
+  if n < 0:
+    n = N
+  left[N + 1] = N
+  right[N] = N + 1
+  left[n + 1] = N + 1
+  right[N + 1] = n + 1
+  left[0] = n
+  right[n] = 0
 
-    for i in range(1, N + 1):
-        length[i] = 0
-        up[i] = i
-        down[i] = i
+  for i in range(1, N + 1):
+    length[i] = 0
+    up[i] = i
+    down[i] = i
 
-    M = 0
-    p = N + 1
-    top[p] = 0
+  M = 0
+  p = N + 1
+  top[p] = 0
 
-    while True:
-        s = bytes.readline().decode('utf-8').strip()
+  while True:
+    s = bytes.readline().decode('utf-8').strip()
 
-        if s == '':
-            print(str(N)+' '+str(L)+' '+str(p))
-            break
-        o = s.split('.')
-        l = int(o[0]) + 1
-        t = [int(a) for a in o[1][1:-1].split(',')]
-        for j in range(1, l):
-            k = t[j-1]
-            length[k] += 1
-            q = up[k]
-            up[p+j] = q
-            down[q] = p + j
-            down[p+j] = k
-            up[k] = p + j
-            top[p+j] = k
+    if s == '':
+      print(str(N) + ' ' + str(L) + ' ' + str(p))
+      break
+    o = s.split('.')
+    l = int(o[0]) + 1
+    t = [int(a) for a in o[1][1:-1].split(',')]
+    for j in range(1, l):
+      k = t[j - 1]
+      length[k] += 1
+      q = up[k]
+      up[p + j] = q
+      down[q] = p + j
+      down[p + j] = k
+      up[k] = p + j
+      top[p + j] = k
 
-        M += 1
-        down[p] = p + int(o[0])
-        p = p + int(o[0]) + 1
-        top[p] = -M
-        up[p] = p - int(o[0])
+    M += 1
+    down[p] = p + int(o[0])
+    p = p + int(o[0]) + 1
+    top[p] = -M
+    up[p] = p - int(o[0])
 
-    print('left: '+str(len(left))) #+' '+str(left))
-    print('right: '+str(len(right))) #+' '+str(right))
-    print('top: '+str(len(top))) #+' '+str(top))
-    print('up:'+str(len(up))) #+' '+str(up))
-    print('down: '+str(len(down))) #+' '+str(down))
-    print('length: '+str(len(length))) #+' '+str(length))
-    return (N, p)
+  print('left: ' + str(len(left)))  # +' '+str(left))
+  print('right: ' + str(len(right)))  # +' '+str(right))
+  print('top: ' + str(len(top)))  # +' '+str(top))
+  print('up:' + str(len(up)))  # +' '+str(up))
+  print('down: ' + str(len(down)))  # +' '+str(down))
+  print('length: ' + str(len(length)))  # +' '+str(length))
+  return (N, p)
+
 
 def generate(N):
-    n = -1
-    i = 0
-    # Define BytesIO stream to write.
-    bytes = io.BytesIO()
-    k = randint(4,8)
-    prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
+  n = -1
+  i = 0
+  # Define BytesIO stream to write.
+  bytes = io.BytesIO()
+  k = randint(4, 8)
+  prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
-    n_val = randint(N,N)
-    o_val = randint(n_val, n_val)
-    m_vals = [tuple(sample(range(1,n_val+1), randint(n_val//3,n_val*2//3)))
-	for _ in range(o_val)]
-    m_vals = set(m_vals)
-    o = [str(n_val), prefix, str(o_val), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
-    bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
+  n_val = randint(N, N)
+  o_val = randint(n_val, n_val)
+  m_vals = [tuple(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3)))
+            for _ in range(o_val)]
+  m_vals = set(m_vals)
+  o = [str(n_val), prefix, str(o_val), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
+  bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
 
-    for m_val in m_vals :
-        o = [str(len(m_val))]
-        sorted_list = sorted(m_val)
-        o.append(str(sorted_list))
-        bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
+  for m_val in m_vals:
+    o = [str(len(m_val))]
+    sorted_list = sorted(m_val)
+    o.append(str(sorted_list))
+    bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
 
-    bytes.seek(0)  # reset the stream position
+  bytes.seek(0)  # reset the stream position
+  return bytes
 
-    # now you can read the byte stream like a normal file
-    #for line in bytes:
-    #    print(line.decode())  # decode bytes to string
-		
-    return bytes
 
 if __name__ == "__main__":
-    bytes = generate(8000)
-    (N,p) = setup(bytes)
+  bytes = generate(16384)
+  (N, p) = setup(bytes)
