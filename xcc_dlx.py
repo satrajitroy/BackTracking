@@ -1,7 +1,16 @@
 import io
 import string
+from time import time_ns
+from psutil import virtual_memory
 from random import choices, randint, sample
 
+opts = []
+left = []
+right = []
+length = []
+up = []
+down = []
+top = []
 
 # step 1:
 #    setup #encode problem in memory
@@ -160,7 +169,7 @@ def unhide(p):
 #            i <- p
 #            p <- rightop(1)
 #            if theta == 0:
-#                return i
+#                return i    opts = ['']*m
 
 # setup:
 #    n <- -1
@@ -212,6 +221,7 @@ def unhide(p):
 #        up(p) <- p - o[0]
 
 def setup(bytes):
+  mem = virtual_memory().available
   n = -1
   i = 0
 
@@ -283,22 +293,24 @@ def setup(bytes):
     top[p] = -M
     up[p] = p - int(o[0])
 
-  print('left: ' + str(len(left)))  # +' '+str(left))
-  print('right: ' + str(len(right)))  # +' '+str(right))
-  print('top: ' + str(len(top)))  # +' '+str(top))
-  print('up:' + str(len(up)))  # +' '+str(up))
-  print('down: ' + str(len(down)))  # +' '+str(down))
-  print('length: ' + str(len(length)))  # +' '+str(length))
-  return (N, p)
+    print('left: '+str(len(left))) #+' '+str(left))
+    print('right: '+str(len(right))) #+' '+str(right))
+    print('top: '+str(len(top))) #+' '+str(top))
+    print('up:'+str(len(up))) #+' '+str(up))
+    print('down: '+str(len(down))) #+' '+str(down))
+    print('length: '+str(len(length))) #+' '+str(length))
+    print("Memory used: " +str(mem - virtual_memory().available))
+    return (N, p)
 
 
 def generate(N):
-  n = -1
-  i = 0
-  # Define BytesIO stream to write.
-  bytes = io.BytesIO()
-  k = randint(4, 8)
-  prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
+    mem = virtual_memory().available
+    n = -1
+    i = 0
+    # Define BytesIO stream to write.
+    bytes = io.BytesIO()
+    k = randint(4,8)
+    prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
   n_val = randint(N, N)
   o_val = randint(n_val, n_val)
@@ -314,10 +326,48 @@ def generate(N):
     o.append(str(sorted_list))
     bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
 
-  bytes.seek(0)  # reset the stream position
-  return bytes
+    bytes.seek(0)  # reset the stream position
+
+    # now you can read the byte stream like a normal file
+    #for line in bytes:
+    #    print(line.decode())  # decode bytes to string
+
+    print("Memory used: " +str(mem - virtual_memory().available))
+    return bytes
 
 
 if __name__ == "__main__":
-  bytes = generate(16384)
-  (N, p) = setup(bytes)
+    now = time_ns()
+    mem = virtual_memory().available
+    bytes = generate(16384)
+    print("Time to generate: " + str(time_ns() - now) + " Serialized size: " + str(bytes.seek(0, io.SEEK_END)))
+    now = time_ns()
+    mem = virtual_memory().available
+    (N,p) = setup(bytes)
+    print(str("Time to setup: " + str(time_ns() - now)))
+
+# With 28672 items and equal number of options
+# Memory used: 19443474432
+# Time to generate: 164322166020 Serialized size: 2722212417
+# 28672 411694073 411694072
+# left: 28674
+# right: 28674
+# top: 411694073
+# up:411694073
+# down: 411694073
+# length: 28674
+# Memory used: 49528496128
+# Time to setup: 120763156546
+
+# With 16384 items and equal number of options
+# Memory used: 6290378752
+# Time to generate: 51219485085 Serialized size: 850099481
+# 16384 134480223 134480222
+# left: 16386
+# right: 16386
+# top: 134480223
+# up:134480223
+# down: 134480223
+# length: 16386
+# Memory used: 16145252352
+# Time to setup: 39102953370
