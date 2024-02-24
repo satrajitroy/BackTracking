@@ -1,8 +1,10 @@
 import io
 import string
-from time import time_ns
-from psutil import virtual_memory
+import sys
 from random import choices, randint, sample
+from time import time_ns
+
+from psutil import virtual_memory
 
 opts = []
 left = []
@@ -19,7 +21,7 @@ top = []
 #    l <- 0
 
 # step 2:
-#    if right(1) == 0:
+#    if right(0) == 0:
 #         visit x[1] ... x[l-1]
 #          go to step 8
 
@@ -79,7 +81,8 @@ def cover(i):
   l = left[i]
   r = right[i]
   right[l] = r
-  left[r]  = l
+  left[r] = l
+
 
 # hide i:
 #    q <- p + 1
@@ -110,6 +113,7 @@ def hide(p):
     else:
       q = u
 
+
 # uncover i:
 #    l <- left(1)
 #    r <- right(1)
@@ -121,15 +125,17 @@ def hide(p):
 #        p <- up(1)
 
 def uncover(i):
+  global left, right, top, up, down, length
   l = left[i]
   r = right[i]
-  right[l] = r
-  left[r]  = l
+  right[l] = i
+  left[r] = i
 
   p = up[i]
   while p != i:
     unhide(p)
     p = up[p]
+
 
 # unhide i:
 #    q <- p - 1
@@ -146,6 +152,7 @@ def uncover(i):
 #            q--
 
 def unhide(p):
+  global left, right, top, up, down, length
   q = p - 1
   while q != p:
     x = top[q]
@@ -155,21 +162,36 @@ def unhide(p):
       down[u] - q
       up[d] = q
       length[x] += 1
-      q -+ 1
+      q -= 1
     else:
       q = d
 
-# mrv:
-#    theta <- sys.maxsize
-#    p <- rightop(1)
-#    while p != 0:
-#        lamda <- len(p)
-#        if lamda < theta:
-#            theta <- lamda
-#            i <- p
-#            p <- rightop(1)
-#            if theta == 0:
-#                return i    opts = ['']*m
+
+# mrv: (minimum remaining values)
+# theta <- sys.maxsize
+# p <- right[1]
+# while p != 0
+#   lamda <- length[p]
+#   if lamda < theta:
+#     theta <- lamda
+#     if theta == 0:
+#       return p
+
+#   i <- p
+#   p <- right[1]
+
+def mrv(i):
+  theta = sys.maxsize
+  p = right[i]
+  while p != 0:
+    lamda = length[p]
+    if lamda < theta:
+      theta = lamda
+      if theta == 0:
+        return p
+
+    i = p
+    p = right[i]
 
 # setup:
 #    n <- -1
@@ -221,6 +243,7 @@ def unhide(p):
 #        up(p) <- p - o[0]
 
 def setup(bytes):
+  global left, right, up, down, length
   mem = virtual_memory().available
   n = -1
   i = 0
@@ -252,6 +275,7 @@ def setup(bytes):
   N = i
   if n < 0:
     n = N
+
   left[N + 1] = N
   right[N] = N + 1
   left[n + 1] = N + 1
@@ -274,6 +298,7 @@ def setup(bytes):
     if s == '':
       print(str(N) + ' ' + str(L) + ' ' + str(p))
       break
+
     o = s.split('.')
     l = int(o[0]) + 1
     t = [int(a) for a in o[1][1:-1].split(',')]
@@ -293,24 +318,24 @@ def setup(bytes):
     top[p] = -M
     up[p] = p - int(o[0])
 
-    print('left: '+str(len(left))) #+' '+str(left))
-    print('right: '+str(len(right))) #+' '+str(right))
-    print('top: '+str(len(top))) #+' '+str(top))
-    print('up:'+str(len(up))) #+' '+str(up))
-    print('down: '+str(len(down))) #+' '+str(down))
-    print('length: '+str(len(length))) #+' '+str(length))
-    print("Memory used: " +str(mem - virtual_memory().available))
+    print('left: ' + str(len(left)))  # +' '+str(left))
+    print('right: ' + str(len(right)))  # +' '+str(right))
+    print('top: ' + str(len(top)))  # +' '+str(top))
+    print('up:' + str(len(up)))  # +' '+str(up))
+    print('down: ' + str(len(down)))  # +' '+str(down))
+    print('length: ' + str(len(length)))  # +' '+str(length))
+    print("Memory used: " + str((mem - virtual_memory().available) // (1024 * 1024)))
     return (N, p)
 
 
 def generate(N):
-    mem = virtual_memory().available
-    n = -1
-    i = 0
-    # Define BytesIO stream to write.
-    bytes = io.BytesIO()
-    k = randint(4,8)
-    prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
+  mem = virtual_memory().available
+  n = -1
+  i = 0
+
+  bytes = io.BytesIO()
+  k = randint(4, 8)
+  prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
   n_val = randint(N, N)
   o_val = randint(n_val, n_val)
@@ -326,25 +351,25 @@ def generate(N):
     o.append(str(sorted_list))
     bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
 
-    bytes.seek(0)  # reset the stream position
+  print("Serialized size: " + str(bytes.seek(0, io.SEEK_END) // 1024))
+  bytes.seek(0)  # reset the stream position
 
-    # now you can read the byte stream like a normal file
-    #for line in bytes:
-    #    print(line.decode())  # decode bytes to string
+  for line in bytes:
+    print(line.decode())  # decode bytes to string
 
-    print("Memory used: " +str(mem - virtual_memory().available))
-    return bytes
-
+  print("Memory used: " +str((mem - virtual_memory().available) // (1024 * 1024)))
+  return bytes
 
 if __name__ == "__main__":
-    now = time_ns()
-    mem = virtual_memory().available
-    bytes = generate(16384)
-    print("Time to generate: " + str(time_ns() - now) + " Serialized size: " + str(bytes.seek(0, io.SEEK_END)))
-    now = time_ns()
-    mem = virtual_memory().available
-    (N,p) = setup(bytes)
-    print(str("Time to setup: " + str(time_ns() - now)))
+  global N, Z, l
+
+  now = time_ns()
+  bytes = generate(16)
+  print("Time to generate: " + str((time_ns() - now) // 1000000))
+  now = time_ns()
+  (N, Z) = setup(bytes)
+  l = 0
+  print(str("Time to setup: " + str((time_ns() - now) // 1000000)))
 
 # With 28672 items and equal number of options
 # Memory used: 19443474432
