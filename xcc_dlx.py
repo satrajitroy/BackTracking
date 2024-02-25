@@ -13,6 +13,7 @@ length = []
 up = []
 down = []
 top = []
+x = []
 
 # step 1:
 #    setup #encode problem in memory
@@ -262,6 +263,7 @@ def setup(bytes):
   up = [0] * L
   down = [0] * L
   top = [0] * L
+  x = [0] * L
   N = 0
 
   for i in range(0, m - 2):
@@ -354,8 +356,8 @@ def generate(N):
   print("Serialized size: " + str(bytes.seek(0, io.SEEK_END) // 1024))
   bytes.seek(0)  # reset the stream position
 
-  for line in bytes:
-    print(line.decode())  # decode bytes to string
+  # for line in bytes:
+  #   print(line.decode())  # decode bytes to string
 
   print("Memory used: " +str((mem - virtual_memory().available) // (1024 * 1024)))
   return bytes
@@ -364,13 +366,14 @@ if __name__ == "__main__":
   global N, Z, l
 
   now = time_ns()
-  bytes = generate(16)
+  bytes = generate(28672)
   print("Time to generate: " + str((time_ns() - now) // 1000000))
   now = time_ns()
   (N, Z) = setup(bytes)
   l = 0
   print(str("Time to setup: " + str((time_ns() - now) // 1000000)))
 
+# Ubuntu 24
 # With 28672 items and equal number of options
 # Memory used: 19443474432
 # Time to generate: 164322166020 Serialized size: 2722212417
@@ -382,7 +385,7 @@ if __name__ == "__main__":
 # down: 411694073
 # length: 28674
 # Memory used: 49528496128
-# Time to setup: 120763156546
+# Time to set up: 120763156546
 
 # With 16384 items and equal number of options
 # Memory used: 6290378752
@@ -395,4 +398,32 @@ if __name__ == "__main__":
 # down: 134480223
 # length: 16386
 # Memory used: 16145252352
-# Time to setup: 39102953370
+# Time to set up: 39102953370
+
+# Windows 10
+# With 24576 items and equal number of options
+# Serialized size: 1930822
+# Memory used: 9326
+# Time to generate: 2203477
+# left: 24578
+# right: 24578
+# top: 301968262
+# up:301968262
+# down: 301968262
+# length: 24578
+# Memory used: 9285
+# Time to set up: 21487
+#
+# With 28672 items and equal number of options
+# Serialized size: 2656690
+# Memory used: 10702
+# Time to generate: 4453042
+# left: 28674
+# right: 28674
+# top: 411427330
+# up:411427330
+# down: 411427330
+# length: 28674
+# Memory used: 11731
+# Time to set up: 35793
+
