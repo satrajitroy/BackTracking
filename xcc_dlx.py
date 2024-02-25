@@ -266,6 +266,9 @@ def setup(bytes):
   x = [0] * L
   N = 0
 
+  print("Memory used after allocating all lists: " + str((mem - virtual_memory().available) // (1024 * 1024)))
+  k = randint(4, 8)
+
   for i in range(0, m - 2):
     i += 1
     opts[i] = o[1] + str(i)
@@ -340,12 +343,19 @@ def generate(N):
   prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
   n_val = randint(N, N)
-  o_val = randint(n_val, n_val)
+  o_val = randint(4 * n_val, 4 * n_val)
   m_vals = [tuple(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3)))
             for _ in range(o_val)]
+
+  print("Memory used: after generating options " +str((mem - virtual_memory().available) // (1024 * 1024)))
+  k = randint(4, 8)
+
   m_vals = set(m_vals)
   o = [str(n_val), prefix, str(o_val), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
   bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
+
+  print("Memory used after unique options: " + str((mem - virtual_memory().available) // (1024 * 1024)))
+  k = randint(4, 8)
 
   for m_val in m_vals:
     o = [str(len(m_val))]
@@ -359,14 +369,14 @@ def generate(N):
   # for line in bytes:
   #   print(line.decode())  # decode bytes to string
 
-  print("Memory used: " +str((mem - virtual_memory().available) // (1024 * 1024)))
+  print("Memory used after writing options: " +str((mem - virtual_memory().available) // (1024 * 1024)))
   return bytes
 
 if __name__ == "__main__":
   global N, Z, l
 
   now = time_ns()
-  bytes = generate(28672)
+  bytes = generate(32768)
   print("Time to generate: " + str((time_ns() - now) // 1000000))
   now = time_ns()
   (N, Z) = setup(bytes)
@@ -399,6 +409,22 @@ if __name__ == "__main__":
 # length: 16386
 # Memory used: 16145252352
 # Time to set up: 39102953370
+
+# With 32768 items and 131072 options
+# Memory used: after generating options 45359
+# Memory used after unique options: 45362
+# Serialized size: 7618964
+# Memory used after writing options: 52820
+# Time to generate: 471570
+# Memory used after allocating all lists: 35801
+# left: 32770
+# right: 32770
+# top: 1171322204
+# up:1171322204
+# down: 1171322204
+# length: 32770
+# Memory used: 35806
+# Time to setup: 15335
 
 # Windows 10
 # With 24576 items and equal number of options
