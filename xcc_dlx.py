@@ -21,17 +21,60 @@ x = []
 #    Z <- & last spacer
 #    l <- 0
 
+def visit(x, l):
+  print("Current solution: "+str([x[i] for i in range(1, l+1)]))
+
 # step 2:
 #    if right(0) == 0:
 #         visit x[1] ... x[l-1]
 #          go to step 8
 
+
+def level_l():
+  if right[0] == 0:
+    visit(x, l)
+    next_l()
+  else:
+    i = mrv()
+    cover(i)
+    x[l] = down[i]
+    try_l(i)
+
+
 # step 3:
 #    mrv i <- right(1) ... right(1), right(1) == 0 #(use MRV heuristic)
+
+# mrv: (minimum remaining values)
+# theta <- sys.maxsize
+# p <- right[1]
+# while p != 0
+#   lamda <- length[p]
+#   if lamda < theta:
+#     theta <- lamda
+#     if theta == 0:
+#       return p
+
+#   i <- p
+#   p <- right[1]
+
+def mrv():
+  theta = sys.maxsize
+  p = right[0]
+  while p != 0:
+    lamda = length[p]
+    if lamda < theta:
+      theta = lamda
+      if theta == 0:
+        return p
+
+    i = p
+    p = right[i]
+
 
 # step 4:
 #    cover i
 #    x[l] <- down(1)
+
 
 # step 5:
 #    if x[l] == :
@@ -47,6 +90,26 @@ x = []
 #                p++
 #                l++
 #                go to step 2
+
+
+def try_l(i):
+  global N, M, Z, l, left, right, top, up, down, length, x
+  if x[l] == i:
+    backtrack(i)
+  else:
+    p = x[l] + 1
+    while p != x[l]:
+      j = top[p]
+      if j > 0:
+        cover(j)
+        p += 1
+      else:
+        p = up[p]
+
+    l += 1
+    level_l()
+
+
 # step 6:
 #    p <- x[l] - 1;
 #    while p != x[l]
@@ -59,8 +122,39 @@ x = []
 #            i <- top(1)
 #            x[l] <- down(1)
 #            go to step 5
+
+
+def retry_l():
+  p = x[l] - 1
+  while p != x[l]:
+    j = top[p]
+    if j > 0:
+      uncover(j)
+      p -+ 1
+    else:
+      p = down[p]
+
+  i = top[x[l]]
+  x[l] = down[x[l]]
+  try_l(i)
+
+
 # step 7: uncover i
+
+
+def backtrack(i):
+  uncover(i)
+  next_l()
+
 # step 8: if l == 0 exit else l--; go to step 6
+
+
+def next_l():
+  if l == 0:
+    sys.exit(0)
+  else:
+    l -= 1
+    retry_l()
 
 # cover i:
 #    p <- down(1)
@@ -168,32 +262,6 @@ def unhide(p):
       q = d
 
 
-# mrv: (minimum remaining values)
-# theta <- sys.maxsize
-# p <- right[1]
-# while p != 0
-#   lamda <- length[p]
-#   if lamda < theta:
-#     theta <- lamda
-#     if theta == 0:
-#       return p
-
-#   i <- p
-#   p <- right[1]
-
-def mrv(i):
-  theta = sys.maxsize
-  p = right[i]
-  while p != 0:
-    lamda = length[p]
-    if lamda < theta:
-      theta = lamda
-      if theta == 0:
-        return p
-
-    i = p
-    p = right[i]
-
 # setup:
 #    n <- -1
 #    i <- 0
@@ -222,6 +290,7 @@ def mrv(i):
 #        down(i) <- i
 #    M <- 0
 #    p <- N + 1
+
 #    top(p) <- 0
 #    while True:
 #        s <- f.readline()
@@ -330,7 +399,7 @@ def setup(bytes):
     print('down: ' + str(len(down)))  # +' '+str(down))
     print('length: ' + str(len(length)))  # +' '+str(length))
     print("Memory used: " + str((mem - virtual_memory().available) // (1024 * 1024)))
-    return (N, p)
+    return (N, M, p)
 
 
 def generate(N):
@@ -343,7 +412,7 @@ def generate(N):
   prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
   n_val = randint(N, N)
-  o_val = randint(4 * n_val, 4 * n_val)
+  o_val = randint(3 * n_val, 4 * n_val)
   m_vals = [tuple(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3)))
             for _ in range(o_val)]
 
@@ -372,16 +441,20 @@ def generate(N):
   print("Memory used after writing options: " +str((mem - virtual_memory().available) // (1024 * 1024)))
   return bytes
 
+
 if __name__ == "__main__":
-  global N, Z, l
+  global N, M, Z, l, right, down, x
 
   now = time_ns()
   bytes = generate(32768)
   print("Time to generate: " + str((time_ns() - now) // 1000000))
   now = time_ns()
-  (N, Z) = setup(bytes)
+  (N, M, Z) = setup(bytes)
   l = 0
   print(str("Time to setup: " + str((time_ns() - now) // 1000000)))
+
+  level_l()
+
 
 # Ubuntu 24
 # With 28672 items and equal number of options
@@ -425,6 +498,22 @@ if __name__ == "__main__":
 # length: 32770
 # Memory used: 35806
 # Time to setup: 15335
+
+# With 24576 items and 98304 options
+# Memory used: after generating options 46689
+# Memory used after unique options: 46695
+# Serialized size: 7724769
+# Memory used after writing options: 54256
+# Time to generate: 485623
+# Memory used after allocating all lists: 36932
+# left: 24578
+# right: 24578
+# top: 1208102790
+# up:1208102790
+# down: 1208102790
+# length: 24578
+# Memory used: 36934
+# Time to setup: 16000
 
 # Windows 10
 # With 24576 items and equal number of options
