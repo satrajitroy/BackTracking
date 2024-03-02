@@ -6,14 +6,18 @@ from time import time_ns
 
 from psutil import virtual_memory
 
-opts = []
-left = []
-right = []
-length = []
-up = []
-down = []
-top = []
-x = []
+# opts = None
+# left = None
+# right = None
+# length = None
+# up = None
+# down = None
+# top = None
+# x = None
+# N = None
+# M = None
+# Z = None
+# l = None
 
 # step 1:
 #    setup #encode problem in memory
@@ -30,12 +34,12 @@ def visit(x, l):
 #          go to step 8
 
 
-def level_l():
+def level_l(x, l):
   if right[0] == 0:
     visit(x, l)
     next_l()
   else:
-    i = mrv()
+    i = len(x) - 1 #mrv()
     cover(i)
     x[l] = down[i]
     try_l(i)
@@ -103,12 +107,12 @@ def try_l(i):
       if j > 0:
         cover(j)
         p += 1
+        l += 1
+        level_l()
       else:
         p = up[p]
 
-    l += 1
-    level_l()
-
+  retry_l()
 
 # step 6:
 #    p <- x[l] - 1;
@@ -150,6 +154,7 @@ def backtrack(i):
 
 
 def next_l():
+  global l
   if l == 0:
     sys.exit(0)
   else:
@@ -313,7 +318,7 @@ def unhide(p):
 #        up(p) <- p - o[0]
 
 def setup(bytes):
-  global left, right, up, down, length
+  global left, right, top, up, down, length, x
   mem = virtual_memory().available
   n = -1
   i = 0
@@ -335,7 +340,7 @@ def setup(bytes):
   x = [0] * L
   N = 0
 
-  print("Memory used after allocating all lists: " + str((mem - virtual_memory().available) // (1024 * 1024)))
+  print("Memory used after allocating all lists: " + "{:,}".format(mem - virtual_memory().available))
   k = randint(4, 8)
 
   for i in range(0, m - 2):
@@ -398,7 +403,7 @@ def setup(bytes):
     print('up:' + str(len(up)))  # +' '+str(up))
     print('down: ' + str(len(down)))  # +' '+str(down))
     print('length: ' + str(len(length)))  # +' '+str(length))
-    print("Memory used: " + str((mem - virtual_memory().available) // (1024 * 1024)))
+    print("Memory used: " + "{:,}".format(mem - virtual_memory().available))
     return (N, M, p)
 
 
@@ -412,48 +417,47 @@ def generate(N):
   prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
   n_val = randint(N, N)
-  o_val = randint(3 * n_val, 4 * n_val)
-  m_vals = [tuple(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3)))
+  o_val = randint(4*n_val, 4*n_val)
+  m_vals = [tuple(sorted(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3))))
             for _ in range(o_val)]
 
-  print("Memory used: after generating options " +str((mem - virtual_memory().available) // (1024 * 1024)))
+  print("Memory used: after generating options " + "{:,}".format(mem - virtual_memory().available))
   k = randint(4, 8)
 
   m_vals = set(m_vals)
   o = [str(n_val), prefix, str(o_val), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
   bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
 
-  print("Memory used after unique options: " + str((mem - virtual_memory().available) // (1024 * 1024)))
+  print("Memory used after unique options: " + "{:,}".format(mem - virtual_memory().available))
   k = randint(4, 8)
 
   for m_val in m_vals:
     o = [str(len(m_val))]
-    sorted_list = sorted(m_val)
-    o.append(str(sorted_list))
+    o.append(str(m_val))
     bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
 
-  print("Serialized size: " + str(bytes.seek(0, io.SEEK_END) // 1024))
+  print("Serialized size: " + "{:,}".format((bytes.seek(0, io.SEEK_END))))
   bytes.seek(0)  # reset the stream position
 
-  # for line in bytes:
-  #   print(line.decode())  # decode bytes to string
+  for line in bytes:
+    print(line.decode())  # decode bytes to string
 
-  print("Memory used after writing options: " +str((mem - virtual_memory().available) // (1024 * 1024)))
+  print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
 
 
 if __name__ == "__main__":
-  global N, M, Z, l, right, down, x
+  global N, M, Z, l, x
 
   now = time_ns()
-  bytes = generate(32768)
+  bytes = generate(4)
   print("Time to generate: " + str((time_ns() - now) // 1000000))
   now = time_ns()
   (N, M, Z) = setup(bytes)
   l = 0
   print(str("Time to setup: " + str((time_ns() - now) // 1000000)))
 
-  level_l()
+  level_l(x, l)
 
 
 # Ubuntu 24
