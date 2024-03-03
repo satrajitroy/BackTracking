@@ -26,7 +26,7 @@ from psutil import virtual_memory
 #    l <- 0
 
 def visit(x, l):
-  print(f"{visit.__name__}: {[x[i] in range(1, l + 1)]}")
+  print(f"{visit.__name__}: {[x[i] for i in range(1, l + 1)]}")
 
 # step 2:
 #    if right(0) == 0:
@@ -78,7 +78,7 @@ def mrv():
 
     p = right[p]
 
-  print(f"{mrv.__name__} i: {p}")
+  print(f"{mrv.__name__} p: {p}")
   return p
 
 
@@ -185,8 +185,8 @@ def next_l():
 def cover(i):
   global left, right, top, up, down, length
   p = down[i]
-  print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
   while p != i:
+    print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
     hide(p)
     p = down[p]
 
@@ -212,7 +212,6 @@ def cover(i):
 
 def hide(p):
   global top, up, down, length
-  print(f"{hide.__name__} hiding {p}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
   q = p + 1
   while q != p:
     X = top[q]
@@ -223,7 +222,7 @@ def hide(p):
       up[d] = u
       length[X] -= 1
       q += 1
-      print(f"{hide.__name__} hiding {p}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
+      # print(f"{hide.__name__} hiding {p} q: {q}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
     else:
       q = u
 
