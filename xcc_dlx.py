@@ -26,7 +26,7 @@ from psutil import virtual_memory
 #    l <- 0
 
 def visit(x, l):
-  print("Current: "+str([x[i] for i in range(1, l+1)]))
+  print(f"{visit.__name__}: {[x[i] in range(1, l + 1)]}")
 
 # step 2:
 #    if right(0) == 0:
@@ -73,9 +73,9 @@ def mrv():
     if lamda < theta:
       theta = lamda
       if theta == 0:
-        print(f"Insoluble {mrv.__name__}\ntheta: {theta}")
+        print(f"{mrv.__name__} i: {p}")
         break
-        
+
     p = right[p]
 
   print(f"{mrv.__name__} i: {p}")
@@ -165,7 +165,7 @@ def backtrack(i):
 
 def next_l():
   global l
-  print(f"{next_l.__name__} l= {l}")
+  print(f"{next_l.__name__} l: {l}")
   if l == 0:
     sys.exit(0)
   else:
@@ -342,7 +342,7 @@ def setup(bytes):
   o = s.split(',')
   m = int(o[0]) + 2
   l = int(o[2])
-  L = int(o[3])
+  L = int(o[3]) + 1
 
   opts = [''] * m
   left = [0] * m
