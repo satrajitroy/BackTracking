@@ -513,7 +513,7 @@ if __name__ == "__main__":
        lambda t, n, k: bool(t < k),
        lambda l, n, k: l <= n)  # partition
 
-  items = [tuple(convert_rgs(y)) for y in sample(x, N)]
+  items = [tuple(convert_rgs(y)) for y in sample(x, N//2)]
   bytes = specified(N, items) # specified(4, items)
   print("Generate: "+"{:,}".format(int((time_ns()-now)//1e6)))
   now = time_ns()

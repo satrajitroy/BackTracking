@@ -13,7 +13,7 @@ def test(n, k, j, i, l, m, t, x, reject, domain, count):
         t = i
       else:
         y.append(x[1:j + 1])
-        print("Solution: " + str(m) + " -> " + str(x[1:j + 1]) + "\n")
+        # print("Solution: " + str(m) + " -> " + str(x[1:j + 1]) + "\n")
         m, l, t = revert(k, l - 1, m + 1, n, x, domain)
     if l < 1:
       break
