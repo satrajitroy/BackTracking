@@ -4,8 +4,6 @@ import sys
 from random import choices, randint, sample
 from time import time_ns
 
-from psutil import virtual_memory
-
 # opts = None
 # left = None
 # right = None
@@ -26,7 +24,7 @@ from psutil import virtual_memory
 #    l <- 0
 
 def visit(x, l):
-  print("Current solution: "+str([x[i] for i in range(1, l+1)]))
+  print("Current: "+str([x[i] for i in range(1, l+1)]))
 
 # step 2:
 #    if right(0) == 0:
@@ -35,13 +33,15 @@ def visit(x, l):
 
 
 def level_l(x, l):
+  print(level_l.__name__)
   if right[0] == 0:
     visit(x, l)
     next_l()
   else:
-    i = len(x) - 1 #mrv()
+    i = mrv()
     cover(i)
     x[l] = down[i]
+    print(f"{level_l.__name__} covered {i} x[{l}]: {x[l]}")
     try_l(i)
 
 
@@ -62,17 +62,23 @@ def level_l(x, l):
 #   p <- right[1]
 
 def mrv():
+  print(f"{mrv.__name__}\nlength: {length}\nleft. : {left}\nright : {right}")
   theta = sys.maxsize
   p = right[0]
   while p != 0:
+    print(f"{mrv.__name__} p: {p}")
     lamda = length[p]
     if lamda < theta:
       theta = lamda
       if theta == 0:
-        return p
-
+        print(f"Insoluble {mrv.__name__}\ntheta: {theta}")
+        break
+        
     i = p
-    p = right[i]
+    p = right[p]
+
+  print(f"{mrv.__name__} i: {i}")
+  return i
 
 
 # step 4:
@@ -97,7 +103,8 @@ def mrv():
 
 
 def try_l(i):
-  global N, M, Z, l, left, right, top, up, down, length, x
+  global l, top, up, x
+  print(f"{try_l.__name__}\ntop: {top}\nup: {up}")
   if x[l] == i:
     backtrack(i)
   else:
@@ -129,6 +136,7 @@ def try_l(i):
 
 
 def retry_l():
+  print(retry_l.__name__)  
   p = x[l] - 1
   while p != x[l]:
     j = top[p]
@@ -147,6 +155,7 @@ def retry_l():
 
 
 def backtrack(i):
+  print(backtrack.__name__)  
   uncover(i)
   next_l()
 
@@ -155,6 +164,7 @@ def backtrack(i):
 
 def next_l():
   global l
+  print(f"{next_l.__name__} l= {l}")
   if l == 0:
     sys.exit(0)
   else:
@@ -174,6 +184,7 @@ def next_l():
 def cover(i):
   global left, right, top, up, down, length
   p = down[i]
+  print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
   while p != i:
     hide(p)
     p = down[p]
@@ -200,15 +211,16 @@ def cover(i):
 
 def hide(p):
   global left, right, top, up, down, length
+  print(f"{hide.__name__} hiding {p}\ntop: {top}")
   q = p + 1
   while q != p:
-    x = top[q]
+    X = top[q]
     u = up[q]
     d = down[q]
-    if x > 0:
+    if X > 0:
       down[u] = d
       up[d] = u
-      length[x] -= 1
+      length[X] -= 1
       q += 1
     else:
       q = u
@@ -319,14 +331,14 @@ def unhide(p):
 
 def setup(bytes):
   global left, right, top, up, down, length, x
-  mem = virtual_memory().available
+
   n = -1
   i = 0
 
   bytes.seek(0)
   s = bytes.readline().decode('utf-8').strip()  # read line
   o = s.split(',')
-  m = int(o[0]) + 2
+  m = int(o[0]) + 1
   l = int(o[2])
   L = int(o[3])
 
@@ -340,27 +352,25 @@ def setup(bytes):
   x = [0] * L
   N = 0
 
-  print("Memory used after allocating all lists: " + "{:,}".format(mem - virtual_memory().available))
-  k = randint(4, 8)
-
-  for i in range(0, m - 2):
-    i += 1
+  for i in range(1, m-1):
     opts[i] = o[1] + str(i)
     left[i] = i - 1
     right[i - 1] = i
-    if i > l:
-      n = i - 1
 
   N = i
   if n < 0:
     n = N
 
+  print(f"N: {N} n: {n}\nleft: {left}\nright: {right}")
   left[N + 1] = N
   right[N] = N + 1
-  left[n + 1] = N + 1
-  right[N + 1] = n + 1
-  left[0] = n
-  right[n] = 0
+  print(f"N: {N} n: {n}\nleft: {left}\nright: {right}")
+  #left[n + 1] = N + 1
+  #right[N + 1] = n + 1
+  #print(f"N: {N} n: {n}\nleft: {left}\nright: {right}")
+  left[0] = N + 1
+  right[N+ 1] = 0
+  print(f"N: {N} n: {n}\nleft: {left}\nright: {right}")
 
   for i in range(1, N + 1):
     length[i] = 0
@@ -379,36 +389,37 @@ def setup(bytes):
       break
 
     o = s.split('.')
-    l = int(o[0]) + 1
+    k = int(o[0])
     t = [int(a) for a in o[1][1:-1].split(',')]
-    for j in range(1, l):
-      k = t[j - 1]
-      length[k] += 1
-      q = up[k]
+    for j in range(k):
+      print(f"{setup.__name__} t: {t} j: {j} K: {t[j]} length[K]: {length[t[j]]}")
+      K = t[j]
+      length[K] += 1
+      print(f"{setup.__name__} t: {t} j: {j} K: {t[j]} length[K]: {length[t[j]]}")     
+      q = up[K]
       up[p + j] = q
       down[q] = p + j
-      down[p + j] = k
-      up[k] = p + j
-      top[p + j] = k
+      down[p + j] = K
+      up[K] = p + j
+      top[p + j] = K
 
-    M += 1
-    down[p] = p + int(o[0])
-    p = p + int(o[0]) + 1
-    top[p] = -M
-    up[p] = p - int(o[0])
+  M += 1
+  down[p] = p + k - 1
+  p = p + k
+  top[p] = -M
+  up[p] = p - k
 
-    print('left: ' + str(len(left)))  # +' '+str(left))
-    print('right: ' + str(len(right)))  # +' '+str(right))
-    print('top: ' + str(len(top)))  # +' '+str(top))
-    print('up:' + str(len(up)))  # +' '+str(up))
-    print('down: ' + str(len(down)))  # +' '+str(down))
-    print('length: ' + str(len(length)))  # +' '+str(length))
-    print("Memory used: " + "{:,}".format(mem - virtual_memory().available))
-    return (N, M, p)
+  print('left: ' + "{:,}".format(len(left)))
+  print('right: ' + "{:,}".format(len(right)))
+  print('top: ' + "{:,}".format(len(top)))
+  print('up:' + "{:,}".format(len(up)))
+  print('down: ' + "{:,}".format(len(down)))
+  print('length: ' + "{:,}".format(len(length)))
+    
+  return (N, M, p)
 
 
 def generate(N):
-  mem = virtual_memory().available
   n = -1
   i = 0
 
@@ -417,24 +428,18 @@ def generate(N):
   prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
 
   n_val = randint(N, N)
-  o_val = randint(4*n_val, 4*n_val)
+  o_val = randint(n_val, n_val)
   m_vals = [tuple(sorted(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3))))
             for _ in range(o_val)]
 
-  print("Memory used: after generating options " + "{:,}".format(mem - virtual_memory().available))
-  k = randint(4, 8)
-
   m_vals = set(m_vals)
-  o = [str(n_val), prefix, str(o_val), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
+  o = [str(n_val), prefix, str(len(m_vals)), str(2 + sum(l + 1 for l in [len(m_val) for m_val in m_vals]))]
   bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
-
-  print("Memory used after unique options: " + "{:,}".format(mem - virtual_memory().available))
-  k = randint(4, 8)
 
   for m_val in m_vals:
     o = [str(len(m_val))]
     o.append(str(m_val))
-    bytes.write('.'.join(o).encode() + b'\n')  # write string encoded as bytes
+    bytes.write('.'.join(o).encode() + b'\n')
 
   print("Serialized size: " + "{:,}".format((bytes.seek(0, io.SEEK_END))))
   bytes.seek(0)  # reset the stream position
@@ -442,7 +447,6 @@ def generate(N):
   for line in bytes:
     print(line.decode())  # decode bytes to string
 
-  print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
 
 
@@ -450,12 +454,12 @@ if __name__ == "__main__":
   global N, M, Z, l, x
 
   now = time_ns()
-  bytes = generate(4)
-  print("Time to generate: " + str((time_ns() - now) // 1000000))
+  bytes = generate((6))
+  print("Generate: "+"{:,}".format(int((time_ns()-now)//1e6)))
   now = time_ns()
   (N, M, Z) = setup(bytes)
   l = 0
-  print(str("Time to setup: " + str((time_ns() - now) // 1000000)))
+  print("Setup: "+"{:,}".format(int((time_ns()-now)//1e6)))
 
   level_l(x, l)
 
@@ -545,4 +549,3 @@ if __name__ == "__main__":
 # length: 28674
 # Memory used: 11731
 # Time to set up: 35793
-
