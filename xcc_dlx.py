@@ -4,6 +4,8 @@ import sys
 from random import choices, randint, sample
 from time import time_ns
 
+from psutil import virtual_memory
+
 # opts = None
 # left = None
 # right = None
@@ -74,11 +76,10 @@ def mrv():
         print(f"Insoluble {mrv.__name__}\ntheta: {theta}")
         break
         
-    i = p
     p = right[p]
 
-  print(f"{mrv.__name__} i: {i}")
-  return i
+  print(f"{mrv.__name__} i: {p}")
+  return p
 
 
 # step 4:
@@ -115,7 +116,7 @@ def try_l(i):
         cover(j)
         p += 1
         l += 1
-        level_l()
+        level_l(x, l)
       else:
         p = up[p]
 
@@ -210,8 +211,8 @@ def cover(i):
 #            q++
 
 def hide(p):
-  global left, right, top, up, down, length
-  print(f"{hide.__name__} hiding {p}\ntop: {top}")
+  global top, up, down, length
+  print(f"{hide.__name__} hiding {p}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
   q = p + 1
   while q != p:
     X = top[q]
@@ -222,6 +223,7 @@ def hide(p):
       up[d] = u
       length[X] -= 1
       q += 1
+      print(f"{hide.__name__} hiding {p}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
     else:
       q = u
 
@@ -331,14 +333,14 @@ def unhide(p):
 
 def setup(bytes):
   global left, right, top, up, down, length, x
-
+  mem = virtual_memory().available
   n = -1
   i = 0
 
   bytes.seek(0)
   s = bytes.readline().decode('utf-8').strip()  # read line
   o = s.split(',')
-  m = int(o[0]) + 1
+  m = int(o[0]) + 2
   l = int(o[2])
   L = int(o[3])
 
@@ -352,7 +354,9 @@ def setup(bytes):
   x = [0] * L
   N = 0
 
-  for i in range(1, m-1):
+  print("Memory used after allocating all lists: " + "{:,}".format(mem - virtual_memory().available))
+
+  for i in range(1, m - 1):
     opts[i] = o[1] + str(i)
     left[i] = i - 1
     right[i - 1] = i
@@ -361,16 +365,10 @@ def setup(bytes):
   if n < 0:
     n = N
 
-  print(f"N: {N} n: {n}\nleft: {left}\nright: {right}")
   left[N + 1] = N
   right[N] = N + 1
-  print(f"N: {N} n: {n}\nleft: {left}\nright: {right}")
-  #left[n + 1] = N + 1
-  #right[N + 1] = n + 1
-  #print(f"N: {N} n: {n}\nleft: {left}\nright: {right}")
   left[0] = N + 1
   right[N+ 1] = 0
-  print(f"N: {N} n: {n}\nleft: {left}\nright: {right}")
 
   for i in range(1, N + 1):
     length[i] = 0
@@ -391,11 +389,9 @@ def setup(bytes):
     o = s.split('.')
     k = int(o[0])
     t = [int(a) for a in o[1][1:-1].split(',')]
-    for j in range(k):
-      print(f"{setup.__name__} t: {t} j: {j} K: {t[j]} length[K]: {length[t[j]]}")
-      K = t[j]
+    for j in range(1, k + 1):
+      K = t[j - 1]
       length[K] += 1
-      print(f"{setup.__name__} t: {t} j: {j} K: {t[j]} length[K]: {length[t[j]]}")     
       q = up[K]
       up[p + j] = q
       down[q] = p + j
@@ -403,23 +399,25 @@ def setup(bytes):
       up[K] = p + j
       top[p + j] = K
 
-  M += 1
-  down[p] = p + k - 1
-  p = p + k
-  top[p] = -M
-  up[p] = p - k
+    M += 1
+    down[p] = p + k
+    p = p + k + 1
+    top[p] = -M
+    up[p] = p - k
 
-  print('left: ' + "{:,}".format(len(left)))
-  print('right: ' + "{:,}".format(len(right)))
-  print('top: ' + "{:,}".format(len(top)))
-  print('up:' + "{:,}".format(len(up)))
-  print('down: ' + "{:,}".format(len(down)))
-  print('length: ' + "{:,}".format(len(length)))
-    
+  print(f"opts: {len(opts)}:, : {opts}")
+  print(f"left: {len(left)}:, : {left}")
+  print(f"right: {len(right)}:, : {right}")
+  print(f"length: {len(length)}:, : {length}")
+  print(f"top: {len(top)}:, : {top}")
+  print(f'up: {len(up)}:, : {up})')
+  print(f'down: {len(down)}:, : {down}')
+
   return (N, M, p)
 
 
 def generate(N):
+  mem = virtual_memory().available
   n = -1
   i = 0
 
@@ -432,9 +430,13 @@ def generate(N):
   m_vals = [tuple(sorted(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3))))
             for _ in range(o_val)]
 
+  print("Memory used: after generating options " + "{:,}".format(mem - virtual_memory().available))
+
   m_vals = set(m_vals)
-  o = [str(n_val), prefix, str(len(m_vals)), str(2 + sum(l + 1 for l in [len(m_val) for m_val in m_vals]))]
+  o = [str(n_val), prefix, str(len(m_vals)), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
   bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
+
+  print("Memory used after unique options: " + "{:,}".format(mem - virtual_memory().available))
 
   for m_val in m_vals:
     o = [str(len(m_val))]
@@ -447,6 +449,7 @@ def generate(N):
   for line in bytes:
     print(line.decode())  # decode bytes to string
 
+  print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
 
 
