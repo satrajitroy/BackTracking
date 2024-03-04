@@ -1,8 +1,10 @@
 import io
+import itertools
 import string
 import sys
 from random import choices, randint, sample
 from time import time_ns
+from backtrack import test
 
 from psutil import virtual_memory
 
@@ -26,7 +28,7 @@ from psutil import virtual_memory
 #    l <- 0
 
 def visit(x, l):
-  print("Current: "+str([x[i] for i in range(1, l+1)]))
+  print(f"{visit.__name__}: {[x[i] for i in range(1, l + 1)]}")
 
 # step 2:
 #    if right(0) == 0:
@@ -67,19 +69,21 @@ def mrv():
   print(f"{mrv.__name__}\nlength: {length}\nleft. : {left}\nright : {right}")
   theta = sys.maxsize
   p = right[0]
+  i = p
   while p != 0:
     print(f"{mrv.__name__} p: {p}")
     lamda = length[p]
     if lamda < theta:
       theta = lamda
+      i = p
       if theta == 0:
-        print(f"Unsolvable {mrv.__name__}\ntheta: {theta}")
+        print(f"{mrv.__name__} i: {i}")
         break
-        
+
     p = right[p]
 
-  print(f"{mrv.__name__} i: {p}")
-  return p
+  print(f"{mrv.__name__} i: {i}")
+  return i
 
 
 # step 4:
@@ -128,7 +132,7 @@ def try_l(i):
 #        j <- top(1);
 #        if j <= 0:
 #            p <- down(1)
-#        else: #(j > 0)6
+#        else: #(j > 0)
 #            uncover j
 #            p--
 #            i <- top(1)
@@ -137,13 +141,13 @@ def try_l(i):
 
 
 def retry_l():
-  print(retry_l.__name__)  
+  print(retry_l.__name__)
   p = x[l] - 1
   while p != x[l]:
     j = top[p]
     if j > 0:
       uncover(j)
-      p -+ 1
+      p -= 1
     else:
       p = down[p]
 
@@ -165,7 +169,7 @@ def backtrack(i):
 
 def next_l():
   global l
-  print(f"{next_l.__name__} l= {l}")
+  print(f"{next_l.__name__} l: {l}")
   if l == 0:
     sys.exit(0)
   else:
@@ -185,8 +189,8 @@ def next_l():
 def cover(i):
   global left, right, top, up, down, length
   p = down[i]
-  print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
   while p != i:
+    print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
     hide(p)
     p = down[p]
 
@@ -212,7 +216,6 @@ def cover(i):
 
 def hide(p):
   global top, up, down, length
-  print(f"{hide.__name__} hiding {p}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
   q = p + 1
   while q != p:
     X = top[q]
@@ -223,7 +226,7 @@ def hide(p):
       up[d] = u
       length[X] -= 1
       q += 1
-      print(f"{hide.__name__} hiding {p}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
+      # print(f"{hide.__name__} hiding {p} q: {q}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
     else:
       q = u
 
@@ -388,7 +391,7 @@ def setup(bytes):
 
     o = s.split('.')
     k = int(o[0])
-    t = [int(a) for a in o[1][1:-1].split(',')]
+    t = [int(a) for a in filter(None, o[1][1:-1].strip().split(','))]
     for j in range(1, k + 1):
       K = t[j - 1]
       length[K] += 1
@@ -416,7 +419,7 @@ def setup(bytes):
   return (N, M, p)
 
 
-def generate(N):
+def randomized(N):
   mem = virtual_memory().available
   n = -1
   i = 0
@@ -452,12 +455,66 @@ def generate(N):
   print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
 
+def specified(N, items):
+  mem = virtual_memory().available
+  n = -1
+  i = 0
+
+  bytes = io.BytesIO()
+  k = randint(4, 8)
+  prefix = ''.join(choices(string.ascii_letters + string.digits, k=k))
+
+  n_val = N
+  o_val = len(items)
+  m_vals = [tuple(sorted(items[i])) for i in range(o_val)]
+
+  print("Memory used: after generating options " + "{:,}".format(mem - virtual_memory().available))
+
+  m_vals = set(tuple(itertools.chain(*m_vals)))
+  o = [str(n_val), prefix, str(len(m_vals)), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
+  bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
+
+  print("Memory used after unique options: " + "{:,}".format(mem - virtual_memory().available))
+
+  for m_val in m_vals:
+    o = [str(len(m_val))]
+    o.extend([str(m_val)])
+    bytes.write('.'.join(o).encode() + b'\n')
+
+  print("Serialized size: " + "{:,}".format((bytes.seek(0, io.SEEK_END))))
+  bytes.seek(0)  # reset the stream position
+
+  for line in bytes:
+    print(line.decode())  # decode bytes to string
+
+  print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
+  return bytes
+
+def convert_rgs(s):
+  p = []
+  for i, v in enumerate(s):
+    v = int(v)
+    if v == 0:
+      continue
+    if v > len(p):
+      p.append({i+1})
+    else:
+      p[v - 1].add(i+1)
+  return [tuple(q) for q in p]
+
 
 if __name__ == "__main__":
   global N, M, Z, l, x
 
   now = time_ns()
-  bytes = generate((7))
+  N = 7
+  x = test(N, N, N, 1, 1, 0, 1, [0] * (N+1),
+       lambda l, n, t, x: t > 1 + max(x[0:l]),
+       lambda t, n, k: bool(t < k),
+       lambda l, n, k: l <= n)  # partition
+
+  items = [tuple(convert_rgs(y)) for y in sample(x, N//2)]
+  bytes = specified(N, items) # specified(4, items)
   print("Generate: "+"{:,}".format(int((time_ns()-now)//1e6)))
   now = time_ns()
   (N, M, Z) = setup(bytes)
