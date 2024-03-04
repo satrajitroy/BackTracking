@@ -73,7 +73,7 @@ def mrv():
     if lamda < theta:
       theta = lamda
       if theta == 0:
-        print(f"Insoluble {mrv.__name__}\ntheta: {theta}")
+        print(f"Unsolvable {mrv.__name__}\ntheta: {theta}")
         break
         
     p = right[p]
@@ -128,7 +128,7 @@ def try_l(i):
 #        j <- top(1);
 #        if j <= 0:
 #            p <- down(1)
-#        else: #(j > 0)
+#        else: #(j > 0)6
 #            uncover j
 #            p--
 #            i <- top(1)
@@ -340,7 +340,7 @@ def setup(bytes):
   bytes.seek(0)
   s = bytes.readline().decode('utf-8').strip()  # read line
   o = s.split(',')
-  m = int(o[0]) + 2
+  m = int(o[0]) + 1
   l = int(o[2])
   L = int(o[3])
 
@@ -457,7 +457,7 @@ if __name__ == "__main__":
   global N, M, Z, l, x
 
   now = time_ns()
-  bytes = generate((6))
+  bytes = generate((7))
   print("Generate: "+"{:,}".format(int((time_ns()-now)//1e6)))
   now = time_ns()
   (N, M, Z) = setup(bytes)
