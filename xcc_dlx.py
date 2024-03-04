@@ -471,7 +471,7 @@ def specified(N, items):
   print("Memory used: after generating options " + "{:,}".format(mem - virtual_memory().available))
 
   m_vals = set(tuple(itertools.chain(*m_vals)))
-  o = [str(n_val), prefix, str(len(m_vals)), str(2 + sum(l + 2 for l in [len(m_val) for m_val in m_vals]))]
+  o = [str(n_val), prefix, str(len(m_vals)), str(N + 1 + sum(l + 1 for l in [len(m_val) for m_val in m_vals]))]
   bytes.write(','.join(o).encode() + b'\n')  # write string encoded as bytes
 
   print("Memory used after unique options: " + "{:,}".format(mem - virtual_memory().available))
