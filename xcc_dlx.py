@@ -4,9 +4,11 @@ import string
 import sys
 from random import choices, randint, sample
 from time import time_ns
-from backtrack import test
 
 from psutil import virtual_memory
+
+from backtrack import test
+
 
 # opts = None
 # left = None
@@ -30,23 +32,11 @@ from psutil import virtual_memory
 def visit(x, l):
   print(f"{visit.__name__}: {[x[i] for i in range(1, l + 1)]}")
 
+
 # step 2:
 #    if right(0) == 0:
 #         visit x[1] ... x[l-1]
 #          go to step 8
-
-
-def level_l(x, l):
-  print(f'{level_l.__name__} l: {l} right: {right}')
-  if right[0] == 0:
-    visit(x, l)
-    next_l()
-  else:
-    i = mrv()
-    cover(i)
-    x[l] = down[i]
-    print(f"{level_l.__name__} covered {i} x[{l}]: {x[l]} right: {right}")
-    try_l(i)
 
 
 # step 3:
@@ -91,6 +81,19 @@ def mrv():
 #    x[l] <- down(1)
 
 
+def level_l(x, l):
+  print(f'{level_l.__name__} l: {l} right: {right}')
+  if right[0] == 0:
+    visit(x, l)
+    next_l()
+  else:
+    i = mrv()
+    cover(i)
+    x[l] = down[i]
+    print(f"{level_l.__name__} l: {l} covered {i} x[{l}]: {x[l]} right: {right}")
+    try_l(i)
+
+
 # step 5:
 #    if x[l] == :
 #        go to step 7
@@ -119,13 +122,12 @@ def try_l(i):
       if j > 0:
         cover(j)
         p += 1
-        l += 1
-        print(f'{try_l.__name__} l: {l} covered {i} right: {right}')
-        level_l(x, l)
+        print(f"{level_l.__name__} l: {l} covered {i} x[{l}]: {x[l]} right: {right}")
       else:
         p = up[p]
 
-  retry_l()
+  l += 1
+  level_l(x, l)
 
 
 def top(p):
@@ -171,9 +173,10 @@ def retry_l():
 
 
 def backtrack(i):
-  print(backtrack.__name__)  
+  print(backtrack.__name__)
   uncover(i)
   next_l()
+
 
 # step 8: if l == 0 exit else l--; go to step 6
 
@@ -186,6 +189,7 @@ def next_l():
   else:
     l -= 1
     retry_l()
+
 
 # cover i:
 #    p <- down(1)
@@ -473,6 +477,7 @@ def randomized(N):
   return bytes
   # opts[N + 1] = o[1] + str(N + i)
 
+
 def specified(N, items):
   mem = virtual_memory().available
   n = -1
@@ -508,6 +513,7 @@ def specified(N, items):
   print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
 
+
 def convert_rgs(s):
   p = []
   for i, v in enumerate(s):
@@ -515,9 +521,9 @@ def convert_rgs(s):
     if v == 0:
       continue
     if v > len(p):
-      p.append({i+1})
+      p.append({i + 1})
     else:
-      p[v - 1].add(i+1)
+      p[v - 1].add(i + 1)
   return [tuple(q) for q in p]
 
 
@@ -526,21 +532,20 @@ if __name__ == "__main__":
 
   now = time_ns()
   N = 7
-  x = test(N, N, N, 1, 1, 0, 1, [0] * (N+1),
-       lambda l, n, t, x: t > 1 + max(x[0:l]),
-       lambda t, n, k: bool(t < k),
-       lambda l, n, k: l <= n)  # partition
+  x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1),
+           lambda l, n, t, x: t > 1 + max(x[0:l]),
+           lambda t, n, k: bool(t < k),
+           lambda l, n, k: l <= n)  # partition
 
   items = [tuple(convert_rgs(y)) for y in sample(x, 1)]
   bytes = specified(N, items)
-  print("Generate: "+"{:,}".format(int((time_ns()-now)//1e6)))
+  print("Generate: " + "{:,}".format(int((time_ns() - now) // 1e6)))
   now = time_ns()
   (N, M, Z) = setup(bytes)
   l = 0
-  print("Setup: "+"{:,}".format(int((time_ns()-now)//1e6)))
+  print("Setup: " + "{:,}".format(int((time_ns() - now) // 1e6)))
 
   level_l(x, l)
-
 
 # Ubuntu 24
 # With 28672 items and equal number of options
