@@ -66,13 +66,13 @@ def level_l(x, l):
 #   p <- right[1]
 
 def mrv():
-  print(f"{mrv.__name__}\nlength: {length}\nleft. : {left}\nright : {right}")
+  print(f"{mrv.__name__}\nlength: {_len}\nleft. : {left}\nright : {right}")
   theta = sys.maxsize
   p = right[0]
   i = p
   while p != 0:
     print(f"{mrv.__name__} p: {p}")
-    lamda = length[p]
+    lamda = _len[p]
     if lamda < theta:
       theta = lamda
       i = p
@@ -108,23 +108,31 @@ def mrv():
 
 
 def try_l(i):
-  global l, top, up, x
-  print(f"{try_l.__name__}\ntop: {top}\nup: {up}")
-  if x[l] == i:
+  global l, _top, up, x
+  print(f"{try_l.__name__}\ntop: {_top}\nup: {up}")
+  if top(l) == i:
     backtrack(i)
   else:
-    p = x[l] + 1
-    while p != x[l]:
-      j = top[p]
+    p = top(l) + 1
+    while p != top(l):
+      j = top(p)
       if j > 0:
         cover(j)
         p += 1
         l += 1
         level_l(x, l)
       else:
-        p = up[p]
+        p = top(p)
 
   retry_l()
+
+
+def top(p):
+  global N, _top
+  # if (p < N + 1):
+  #   print(f"Error: {p} is out of range for {_top}")
+  return _top[p]
+
 
 # step 6:
 #    p <- x[l] - 1;
@@ -144,14 +152,14 @@ def retry_l():
   print(retry_l.__name__)
   p = x[l] - 1
   while p != x[l]:
-    j = top[p]
+    j = _top[p]
     if j > 0:
       uncover(j)
       p -= 1
     else:
       p = down[p]
 
-  i = top[x[l]]
+  i = _top[x[l]]
   x[l] = down[x[l]]
   try_l(i)
 
@@ -187,7 +195,7 @@ def next_l():
 #    left(1) <- l
 
 def cover(i):
-  global left, right, top, up, down, length
+  global left, right, _top, up, down, _len
   p = down[i]
   while p != i:
     print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
@@ -215,16 +223,16 @@ def cover(i):
 #            q++
 
 def hide(p):
-  global top, up, down, length
+  global _top, up, down, _len
   q = p + 1
   while q != p:
-    X = top[q]
+    X = _top[q]
     u = up[q]
     d = down[q]
     if X > 0:
       down[u] = d
       up[d] = u
-      length[X] -= 1
+      _len[X] -= 1
       q += 1
       # print(f"{hide.__name__} hiding {p} q: {q}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
     else:
@@ -242,7 +250,7 @@ def hide(p):
 #        p <- up(1)
 
 def uncover(i):
-  global left, right, top, up, down, length
+  global left, right, _top, up, down, _len
   l = left[i]
   r = right[i]
   right[l] = i
@@ -269,16 +277,16 @@ def uncover(i):
 #            q--
 
 def unhide(p):
-  global left, right, top, up, down, length
+  global left, right, _top, up, down, _len
   q = p - 1
   while q != p:
-    x = top[q]
+    x = _top[q]
     u = up[q]
     d = down[q]
     if x > 0:
       down[u] - q
       up[d] = q
-      length[x] += 1
+      _len[x] += 1
       q -= 1
     else:
       q = d
@@ -335,7 +343,7 @@ def unhide(p):
 #        up(p) <- p - o[0]
 
 def setup(bytes):
-  global left, right, top, up, down, length, x
+  global left, right, _top, up, down, _len, x
   mem = virtual_memory().available
   n = -1
   i = 0
@@ -343,17 +351,17 @@ def setup(bytes):
   bytes.seek(0)
   s = bytes.readline().decode('utf-8').strip()  # read line
   o = s.split(',')
-  m = int(o[0]) + 1
+  m = int(o[0]) + 2
   l = int(o[2])
-  L = int(o[3])
+  L = int(o[3]) + 2
 
   opts = [''] * m
   left = [0] * m
   right = [0] * m
-  length = [0] * m
+  _len = [0] * m
   up = [0] * L
   down = [0] * L
-  top = [0] * L
+  _top = [0] * L
   x = [0] * L
   N = 0
 
@@ -370,17 +378,19 @@ def setup(bytes):
 
   left[N + 1] = N
   right[N] = N + 1
-  left[0] = N + 1
-  right[N+ 1] = 0
+  left[n + 1] = N + 1
+  right[N + 1] = n + 1
+  left[0] = n
+  right[n] = 0
 
   for i in range(1, N + 1):
-    length[i] = 0
+    _len[i] = 0
     up[i] = i
     down[i] = i
 
   M = 0
-  p = N + 1
-  top[p] = 0
+  p = N + 2
+  _top[p] = 0
 
   while True:
     s = bytes.readline().decode('utf-8').strip()
@@ -394,26 +404,26 @@ def setup(bytes):
     t = [int(a) for a in filter(None, o[1][1:-1].strip().split(','))]
     for j in range(1, k + 1):
       K = t[j - 1]
-      length[K] += 1
+      _len[K] += 1
       q = up[K]
       up[p + j] = q
       down[q] = p + j
       down[p + j] = K
       up[K] = p + j
-      top[p + j] = K
+      _top[p + j] = K
 
     M += 1
     down[p] = p + k
     p = p + k + 1
-    top[p] = -M
+    _top[p] = -M
     up[p] = p - k
 
   print(f"opts: {len(opts)}:, : {opts}")
   print(f"left: {len(left)}:, : {left}")
   print(f"right: {len(right)}:, : {right}")
-  print(f"length: {len(length)}:, : {length}")
-  print(f"top: {len(top)}:, : {top}")
-  print(f'up: {len(up)}:, : {up})')
+  print(f"length: {len(_len)}:, : {_len}")
+  print(f"top: {len(_top)}:, : {_top}")
+  print(f'up: {len(up)}:, : {up}')
   print(f'down: {len(down)}:, : {down}')
 
   return (N, M, p)
@@ -454,6 +464,7 @@ def randomized(N):
 
   print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
+  # opts[N + 1] = o[1] + str(N + i)
 
 def specified(N, items):
   mem = virtual_memory().available
