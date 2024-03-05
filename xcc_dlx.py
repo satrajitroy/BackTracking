@@ -37,7 +37,7 @@ def visit(x, l):
 
 
 def level_l(x, l):
-  print(level_l.__name__)
+  print(f'{level_l.__name__} l: {l} right: {right}')
   if right[0] == 0:
     visit(x, l)
     next_l()
@@ -45,7 +45,7 @@ def level_l(x, l):
     i = mrv()
     cover(i)
     x[l] = down[i]
-    print(f"{level_l.__name__} covered {i} x[{l}]: {x[l]}")
+    print(f"{level_l.__name__} covered {i} x[{l}]: {x[l]} right: {right}")
     try_l(i)
 
 
@@ -66,23 +66,23 @@ def level_l(x, l):
 #   p <- right[1]
 
 def mrv():
-  print(f"{mrv.__name__}\nlength: {_len}\nleft. : {left}\nright : {right}")
+  # print(f"{mrv.__name__}\nlength: {_len}\nleft. : {left}\nright : {right}")
   theta = sys.maxsize
   p = right[0]
   i = p
   while p != 0:
-    print(f"{mrv.__name__} p: {p}")
+    # print(f"{mrv.__name__} p: {p}")
     lamda = _len[p]
     if lamda < theta:
       theta = lamda
       i = p
       if theta == 0:
-        print(f"{mrv.__name__} i: {i}")
+        # print(f"{mrv.__name__} i: {i}")
         break
 
     p = right[p]
 
-  print(f"{mrv.__name__} i: {i}")
+  # print(f"{mrv.__name__} i: {i}")
   return i
 
 
@@ -109,20 +109,21 @@ def mrv():
 
 def try_l(i):
   global l, _top, up, x
-  print(f"{try_l.__name__}\ntop: {_top}\nup: {up}")
-  if top(l) == i:
+  print(f"{try_l.__name__} l: {l}\ntop: {_top}\nup: {up}")
+  if x[l] == i:
     backtrack(i)
   else:
-    p = top(l) + 1
-    while p != top(l):
+    p = x[l] + 1
+    while p != x[l]:
       j = top(p)
       if j > 0:
         cover(j)
         p += 1
         l += 1
+        print(f'{try_l.__name__} l: {l} covered {i} right: {right}')
         level_l(x, l)
       else:
-        p = top(p)
+        p = up[p]
 
   retry_l()
 
@@ -149,9 +150,10 @@ def top(p):
 
 
 def retry_l():
-  print(retry_l.__name__)
+  print(f'{retry_l.__name__} l: {l}')
   p = x[l] - 1
   while p != x[l]:
+    print(f'{l:3d} {p:3d} {x[l]:3d} {top(p):3d} {down[p]:3d}')
     j = _top[p]
     if j > 0:
       uncover(j)
@@ -159,6 +161,7 @@ def retry_l():
     else:
       p = down[p]
 
+  print(f'{l:3d} {p:3d} {x[l]:3d} {top(p):3d} {down[p]:3d}')
   i = _top[x[l]]
   x[l] = down[x[l]]
   try_l(i)
@@ -195,10 +198,10 @@ def next_l():
 #    left(1) <- l
 
 def cover(i):
-  global left, right, _top, up, down, _len
+  global left, right, down
   p = down[i]
   while p != i:
-    print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
+    # print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
     hide(p)
     p = down[p]
 
@@ -250,7 +253,7 @@ def hide(p):
 #        p <- up(1)
 
 def uncover(i):
-  global left, right, _top, up, down, _len
+  global left, right, _top, up
   l = left[i]
   r = right[i]
   right[l] = i
@@ -277,7 +280,7 @@ def uncover(i):
 #            q--
 
 def unhide(p):
-  global left, right, _top, up, down, _len
+  global _top, up, down, _len
   q = p - 1
   while q != p:
     x = _top[q]
@@ -389,7 +392,7 @@ def setup(bytes):
     down[i] = i
 
   M = 0
-  p = N + 2
+  p = N + 1
   _top[p] = 0
 
   while True:
@@ -417,6 +420,10 @@ def setup(bytes):
     p = p + k + 1
     _top[p] = -M
     up[p] = p - k
+
+    # print(f'{k:3d} {t}')
+    # print('\n'.join([f'{i:3d} {top(i):3d} {u:3d} {top(u):3d} | {d:3d} {top(d):3d}' for i, (u,d) in enumerate(zip(up, down))]))
+    # print()
 
   print(f"opts: {len(opts)}:, : {opts}")
   print(f"left: {len(left)}:, : {left}")
@@ -460,7 +467,7 @@ def randomized(N):
   bytes.seek(0)  # reset the stream position
 
   for line in bytes:
-    print(line.decode())  # decode bytes to string
+    print(line.decode())  # decode bytes to string0
 
   print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
@@ -477,7 +484,7 @@ def specified(N, items):
 
   n_val = N
   o_val = len(items)
-  m_vals = [tuple(sorted(items[i])) for i in range(o_val)]
+  m_vals = [tuple(items[i]) for i in range(o_val)]
 
   print("Memory used: after generating options " + "{:,}".format(mem - virtual_memory().available))
 
@@ -524,8 +531,8 @@ if __name__ == "__main__":
        lambda t, n, k: bool(t < k),
        lambda l, n, k: l <= n)  # partition
 
-  items = [tuple(convert_rgs(y)) for y in sample(x, N//2)]
-  bytes = specified(N, items) # specified(4, items)
+  items = [tuple(convert_rgs(y)) for y in sample(x, 1)]
+  bytes = specified(N, items)
   print("Generate: "+"{:,}".format(int((time_ns()-now)//1e6)))
   now = time_ns()
   (N, M, Z) = setup(bytes)
