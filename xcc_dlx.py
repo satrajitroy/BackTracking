@@ -30,7 +30,7 @@ from backtrack import test
 #    l <- 0
 
 def visit(x, l):
-  print(f"{visit.__name__}: {[x[i] for i in range(1, l + 1)]}")
+  print(f"{visit.__name__}: l: {l} {[x[i] for i in range(1, l + 1)]}")
 
 
 # step 2:
@@ -209,10 +209,10 @@ def cover(i):
     hide(p)
     p = down[p]
 
-  l = left[i]
-  r = right[i]
-  right[l] = r
-  left[r] = l
+  L = left[i]
+  R = right[i]
+  right[L] = R
+  left[R] = L
 
 
 # hide i:
@@ -258,10 +258,10 @@ def hide(p):
 
 def uncover(i):
   global left, right, _top, up
-  l = left[i]
-  r = right[i]
-  right[l] = i
-  left[r] = i
+  L = left[i]
+  R = right[i]
+  right[L] = i
+  left[R] = i
 
   p = up[i]
   while p != i:
@@ -537,7 +537,7 @@ if __name__ == "__main__":
            lambda t, n, k: bool(t < k),
            lambda l, n, k: l <= n)  # partition
 
-  items = [tuple(convert_rgs(y)) for y in sample(x, 1)]
+  items = [tuple(convert_rgs(y)) for y in sample(x, 2)]
   bytes = specified(N, items)
   print("Generate: " + "{:,}".format(int((time_ns() - now) // 1e6)))
   now = time_ns()
