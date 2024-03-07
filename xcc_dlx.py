@@ -11,6 +11,16 @@ from backtrack import test
 
 def visit(x, l):
   print(f"{visit.__name__}: l: {l} {[x[i] for i in range(1, l + 1)]}")
+  for j in range(l):
+    r = x[j]
+    while True:
+      r += 1
+      if top(r) < 0:
+        break
+
+    print(f'{-top(r)}', end=' ')
+
+  print()
 
 
 def mrv():
@@ -35,14 +45,18 @@ def mrv():
 
 
 
-def level_l(x, l):
+def level_l():
   # print(f'{level_l.__name__} l: {l} right: {right}')
-  if right[0] == 0:
+  i = right[0]
+  if i == 0:
     visit(x, l)
-    next_l()
+    next_l(i)
   else:
     i = mrv()
     cover(i)
+    if l == Z:
+      print(f'Termination error: l: {l} must never be equal to Z: {Z}')
+      sys.exit(1)
     x[l] = down[i]
     # print(f"{level_l.__name__} l: {l} covered {i} x[{l}]: {x[l]} right: {right}")
     try_l(i)
@@ -61,12 +75,13 @@ def try_l(i):
       if j > 0:
         cover(j)
         p += 1
+        l += 1
+        level_l()
         # print(f"{level_l.__name__} l: {l} covered {i} x[{l}]: {x[l]} right: {right}")
       else:
         p = up[p]
 
-  l += 1
-  level_l(x, l)
+  retry_l(i)
 
 
 def top(p):
@@ -77,7 +92,8 @@ def top(p):
 
 
 
-def retry_l():
+def retry_l(j):
+  i = j
   # print(f'{retry_l.__name__} l: {l}')
   p = x[l] - 1
   while p != x[l]:
@@ -86,33 +102,34 @@ def retry_l():
     if j > 0:
       uncover(j)
       p -= 1
+      # print(f'{l:3d} {p:3d} {x[l]:3d} {top(p):3d} {down[p]:3d}')
+      i = _top[x[l]]
+      x[l] = down[x[l]]
+      try_l(i)
     else:
       p = down[p]
 
-  # print(f'{l:3d} {p:3d} {x[l]:3d} {top(p):3d} {down[p]:3d}')
-  i = _top[x[l]]
-  x[l] = down[x[l]]
-  try_l(i)
+  backtrack(i)
 
 
 
 def backtrack(i):
   # print(backtrack.__name__)
   uncover(i)
-  next_l()
+  next_l(i)
 
 
 # step 8: if l == 0 exit else l--; go to step 6
 
 
-def next_l():
+def next_l(i):
   global l
   # print(f"{next_l.__name__} l: {l}")
   if l == 0:
     sys.exit(0)
   else:
     l -= 1
-    retry_l()
+    retry_l(i)
 
 
 def cover(i):
@@ -354,6 +371,7 @@ def convert_rgs(s):
 
 
 if __name__ == "__main__":
+  sys.setrecursionlimit(1 << 16)
   now = time_ns()
   N = 7
   x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1),
@@ -361,7 +379,7 @@ if __name__ == "__main__":
            lambda t, n, k: bool(t < k),
            lambda l, n, k: l <= n)  # partition
 
-  items = [tuple(convert_rgs(y)) for y in sample(x, 2)]
+  items = [tuple(convert_rgs(y)) for y in sample(x, len(x))]
   bytes = specified(N, items)
   print("Generate: " + "{:,}".format(int((time_ns() - now) // 1e6)))
   now = time_ns()
@@ -369,4 +387,52 @@ if __name__ == "__main__":
   l = 0
   print("Setup: " + "{:,}".format(int((time_ns() - now) // 1e6)))
 
-  level_l(x, l)
+  level_l()
+
+  # while True:
+  #
+  #   # X2. [Enter level l.]
+  #   if rlink[0] == 0:  # all items have been covered
+  #     visit(x0_xl())  # visit the current solution
+  #     # X8. [Leave level l.]
+  #     if l == 0:
+  #       sys.exit(0)  # no more levels to backtrack, we're done
+  #     l -= 1
+  #     continue
+  #
+  #   # X3. [Choose i.]
+  #   i = choose_i()
+  #
+  #   # X4. [Cover i.]
+  #   cover(i)
+  #   xl = dlink[i]
+  #
+  #   while True:
+  #
+  #     # X5. [Try xl.]
+  #     if xl == i:  # we've tried all options for i
+  #       break
+  #     p = xl + 1
+  #     while p != xl:
+  #       j = top[p]
+  #       if j <= 0:
+  #         p = ulink[p]
+  #       else:
+  #         cover(j)
+  #         p += 1
+  #     l += 1
+  #
+  #     # X6. [Try again.]
+  #     p = xl - 1
+  #     while p != xl:
+  #       j = top[p]
+  #       if j <= 0:
+  #         p = dlink[p]
+  #       else:
+  #         uncover(j)
+  #         p -= 1
+  #     i = top[xl]
+  #     xl = dlink[xl]
+  #
+  #   # X7. [Backtrack.]
+  #   uncover(i)
