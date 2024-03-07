@@ -313,8 +313,8 @@ def randomized(N):
   print("Serialized size: " + "{:,}".format((bytes.seek(0, io.SEEK_END))))
   bytes.seek(0)  # reset the stream position
 
-  for line in bytes:
-    print(line.decode())  # decode bytes to string0
+  # for line in bytes:
+  #   print(line.decode())  # decode bytes to string0
 
   print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
@@ -350,8 +350,8 @@ def specified(N, items):
   print("Serialized size: " + "{:,}".format((bytes.seek(0, io.SEEK_END))))
   bytes.seek(0)  # reset the stream position
 
-  for line in bytes:
-    print(line.decode())  # decode bytes to string
+  # for line in bytes:
+  #   print(line.decode())  # decode bytes to string
 
   print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
@@ -373,7 +373,7 @@ def convert_rgs(s):
 if __name__ == "__main__":
   sys.setrecursionlimit(1 << 16)
   now = time_ns()
-  N = 7
+  N = 6
   x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1),
            lambda l, n, t, x: t > 1 + max(x[0:l]),
            lambda t, n, k: bool(t < k),
