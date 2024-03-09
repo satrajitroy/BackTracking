@@ -11,7 +11,7 @@ from backtrack import test
 
 
 def visit():
-  # print(f"{visit.__name__}: l: {l} {[x[i] for i in range(1, l + 1)]}")
+  print(f"{visit.__name__}: l: {l} {[x[i] for i in range(l)]}", end=' -> ')
   for j in range(l):
     r = x[j]
     while True:
@@ -21,27 +21,26 @@ def visit():
 
     r -= 1
     while top(r) > 0:
-      # print(f'{top(r)}', end=' ')
+      print(f'{top(r)}', end=' ')
       r -= 1
 
-  # print()
+  print()
 
 
-def mrv():
+def mrv(i):
   # print(f"{mrv.__name__}\nlength: {_len}\nleft. : {left}\nright : {right}")
   theta = sys.maxsize
-  p = right[0]
-  i = p
+  p = i
   while p != 0:
     # print(f"{mrv.__name__} p: {p}")
     lamda = _len[p]
     if lamda < theta:
       theta = lamda
-      i = p
       if theta == 0:
         # print(f"{mrv.__name__} i: {i}")
         break
 
+    i = p
     p = right[p]
 
   # print(f"{mrv.__name__} i: {i}")
@@ -52,13 +51,13 @@ def level_l():
   # print(f'{level_l.__name__} l: {l} right: {right}')
   i = right[0]
   if i == 0:
-    visit(x, l)
-    next_l(i)
+    visit()
+    next_l()
   else:
-    i = mrv()
+    i = mrv(i)
     cover(i)
-    if l == Z:
-      print(f'Termination error: l: {l} must never be equal to Z: {Z}')
+    if l > N:
+      print(f'Termination error: l: {l} too large already')
       sys.exit(1)
     x[l] = down[i]
     # print(f"{level_l.__name__} l: {l} covered {i} x[{l}]: {x[l]} right: {right}")
@@ -77,19 +76,17 @@ def try_level():
 
 
 def try_l(i):
-  global l, _top, up, x
+  global l
   # print(f"{try_l.__name__} l: {l}\ntop: {_top}\nup: {up}")
   if x[l] == i:
     backtrack(i)
   else:
     try_level()
     l += 1
+    level_l()
 
 
 def top(p):
-  global N, _top
-  # if (p < N + 1):
-  #   print(f"Error: {p} is out of range for {_top}")
   return _top[p]
 
 
@@ -105,34 +102,32 @@ def retry_level():
 
   i = top(x[l])
   x[l] = down[x[l]]
+  return i
 
 
-def retry_l(j):
-  i = j
+def retry_l():
   # print(f'{retry_l.__name__} l: {l}')
-  retry_level()
-  try_l(i)
-  # backtrack(i)
+  i = retry_level()
+  try_l(i)  # backtrack(i)
 
 
 def backtrack(i):
   # print(backtrack.__name__)
   uncover(i)
-  next_l(i)
+  next_l()
 
 
-def next_l(i):
+def next_l():
   global l
   # print(f"{next_l.__name__} l: {l}")
   if l == 0:
     sys.exit(0)
   else:
     l -= 1
-    retry_l(i)
+    retry_l()
 
 
 def cover(i):
-  global left, right, down
   p = down[i]
   while p != i:
     # print(f"{cover.__name__} covering {i} p: {p}\ndown: {down}")
@@ -146,24 +141,21 @@ def cover(i):
 
 
 def hide(p):
-  global _top, up, down, _len
   q = p + 1
   while q != p:
-    X = _top[q]
+    X = top(q)
     u = up[q]
     d = down[q]
     if X > 0:
       down[u] = d
       up[d] = u
       _len[X] -= 1
-      q += 1
-      # print(f"{hide.__name__} hiding {p} q: {q}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
+      q += 1  # print(f"{hide.__name__} hiding {p} q: {q}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
     else:
       q = u
 
 
 def uncover(i):
-  global left, right, _top, up
   L = left[i]
   R = right[i]
   right[L] = i
@@ -176,10 +168,9 @@ def uncover(i):
 
 
 def unhide(p):
-  global _top, up, down, _len
   q = p - 1
   while q != p:
-    x = _top[q]
+    x = top(q)
     u = up[q]
     d = down[q]
     if x > 0:
@@ -211,7 +202,7 @@ def setup(bytes):
   up = [0] * L
   down = [0] * L
   _top = [0] * L
-  x = [0] * L
+  x = [0] * m
   N = 0
 
   print("Memory used after allocating all lists: " + "{:,}".format(mem - virtual_memory().available))
@@ -267,9 +258,7 @@ def setup(bytes):
     _top[p] = -M
     up[p] = p - k
 
-    # print(f'{k:3d} {t}')
-    # print('\n'.join([f'{i:3d} {top(i):3d} {u:3d} {top(u):3d} | {d:3d} {top(d):3d}' for i, (u,d) in enumerate(zip(up, down))]))
-    # print()
+    # print(f'{k:3d} {t}')  # print('\n'.join([f'{i:3d} {top(i):3d} {u:3d} {top(u):3d} | {d:3d} {top(d):3d}' for i, (u,d) in enumerate(zip(up, down))]))  # print()
 
   print(f"opts: {len(opts)}:, : {opts}")
   print(f"left: {len(left)}:, : {left}")
@@ -291,8 +280,7 @@ def randomized(N):
 
   n_val = N
   o_val = randint(N, N)
-  m_vals = [tuple(sorted(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3))))
-            for _ in range(o_val)]
+  m_vals = [tuple(sorted(sample(range(1, n_val + 1), randint(n_val // 3, n_val * 2 // 3)))) for _ in range(o_val)]
 
   print("Memory used: after generating options " + "{:,}".format(mem - virtual_memory().available))
 
@@ -314,8 +302,7 @@ def randomized(N):
   #   print(line.decode())  # decode bytes to string0
 
   print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
-  return bytes
-  # opts[N + 1] = o[1] + str(N + i)
+  return bytes  # opts[N + 1] = o[1] + str(N + i)
 
 
 def specified(N, items):
@@ -367,33 +354,15 @@ def convert_rgs(s):
   return [tuple(q) for q in p]
 
 
-
-
-if __name__ == "__main__":
-  sys.setrecursionlimit(1 << 16)
-  now = time_ns()
-  N = 8
-  x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1),
-           lambda l, n, t, x: t > 1 + max(x[0:l]),
-           lambda t, n, k: bool(t < k),
-           lambda l, n, k: l <= n)  # partition
-
-  items = [tuple(convert_rgs(y)) for y in sample(x, len(x))]
-  bytes = specified(N, items)
-  print("Generate: " + "{:,}".format(int((time_ns() - now) // 1e6)))
-  now = time_ns()
-  (N, M, Z) = setup(bytes)
-  l = 0
-  print("Setup: " + "{:,}".format(int((time_ns() - now) // 1e6)))
-
-  # level_l()
-
+def run():
+  global l
   enter_level = True
   exit_level = False
   while True:
     if enter_level:
       # X2. [Enter level l.]
-      if right[0] == 0:  # all items have been covered
+      i = right[0]
+      if i == 0:  # all items have been covered
         visit()  # visit the current solution
         # X8. [Leave level l.]
         if l == 0:
@@ -404,10 +373,13 @@ if __name__ == "__main__":
     if not exit_level:
       if enter_level:
         # X3. [Choose i.]
-        i = mrv()
+        i = mrv(i)
 
         # X4. [Cover i.]
         cover(i)
+        if l > N:
+          print(f'Termination error: l: {l} is too large already')
+          sys.exit(1)
         x[l] = down[i]
 
       while True:
@@ -453,3 +425,22 @@ if __name__ == "__main__":
     enter_level = False
     exit_level = False
 
+
+if __name__ == "__main__":
+  sys.setrecursionlimit(1 << 16)
+  now = time_ns()
+  N = 7
+  x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1), lambda l, n, t, x: t > 1 + max(x[0:l]), lambda t, n, k: bool(t < k),
+           lambda l, n, k: l <= n)  # partition
+
+  items = [tuple(convert_rgs(y)) for y in sample(x, len(x))]
+  bytes = specified(N, items)
+  print("Generate: " + "{:,}".format(int((time_ns() - now) // 1e6)))
+  now = time_ns()
+  (N, M, Z) = setup(bytes)
+  l = 0
+  print("Setup: " + "{:,}".format(int((time_ns() - now) // 1e6)))
+
+  level_l()
+
+  # run()
