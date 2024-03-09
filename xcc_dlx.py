@@ -11,6 +11,7 @@ from backtrack import test
 
 
 def visit():
+  print(f"{visit.__name__}: up:  {len(up):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(up))}")
   print(f"{visit.__name__}: l: {l} {[x[i] for i in range(l)]}", end=' -> ')
   for j in range(l):
     r = x[j]
@@ -19,10 +20,22 @@ def visit():
       if top(r) < 0:
         break
 
-    r -= 1
-    while top(r) > 0:
-      print(f'{top(r)}', end=' ')
-      r -= 1
+    s = r = up[r]
+    print('{', end=' ')
+    while top(s) > 0:
+      print(f'{top(s):4d}', end=' ')
+      s += 1
+
+    while top(r) != 0:
+      r = up[r]
+
+    s = r
+    print(f'{r:4d}:{top(r):4d}', end=' ')
+    while up[r] != s:
+      r = up[r]
+      print(f'{r:4d}:{top(r):4d}', end=' ')
+
+    print('}', end=' ')
 
   print()
 
@@ -260,13 +273,13 @@ def setup(bytes):
 
     # print(f'{k:3d} {t}')  # print('\n'.join([f'{i:3d} {top(i):3d} {u:3d} {top(u):3d} | {d:3d} {top(d):3d}' for i, (u,d) in enumerate(zip(up, down))]))  # print()
 
-  print(f"opts: {len(opts)}:, : {opts}")
-  print(f"left: {len(left)}:, : {left}")
-  print(f"right: {len(right)}:, : {right}")
-  print(f"length: {len(_len)}:, : {_len}")
-  print(f"top: {len(_top)}:, : {_top}")
-  print(f'up: {len(up)}:, : {up}')
-  print(f'down: {len(down)}:, : {down}')
+  print(f"  opts: { len(opts):4d}: {' '.join(f'{i:4d}:{v:8}' for i, v in enumerate(opts))}")
+  print(f"  left: { len(left):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(left))}")
+  print(f" right: {len(right):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(right))}")
+  print(f"length: { len(_len):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(_len))}")
+  print(f"  top:  { len(_top):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(_top))}")
+  print(f"   up:  {   len(up):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(up))}")
+  print(f" down:  { len(down):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(down))}")
 
   return (N, M, p)
 
@@ -429,7 +442,7 @@ def run():
 if __name__ == "__main__":
   sys.setrecursionlimit(1 << 16)
   now = time_ns()
-  N = 7
+  N = 4
   x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1), lambda l, n, t, x: t > 1 + max(x[0:l]), lambda t, n, k: bool(t < k),
            lambda l, n, k: l <= n)  # partition
 
@@ -441,6 +454,6 @@ if __name__ == "__main__":
   l = 0
   print("Setup: " + "{:,}".format(int((time_ns() - now) // 1e6)))
 
-  level_l()
+  # level_l()
 
-  # run()
+  run()
