@@ -21,23 +21,28 @@ def visit():
         break
 
     s = r = up[r]
-    print('{', end=' ')
+    print('[', end=' ')
     while top(s) > 0:
       print(f'{top(s):4d}', end=' ')
+      trace(s)
       s += 1
 
-    while top(r) != 0:
-      r = up[r]
-
-    s = r
-    print(f'{r:4d}:{top(r):4d}', end=' ')
-    while up[r] != s:
-      r = up[r]
-      print(f'{r:4d}:{top(r):4d}', end=' ')
-
-    print('}', end=' ')
+    print(']', end=' ')
 
   print()
+
+
+def trace(r):
+  while top(r) != 0:
+    r = up[r]
+
+  s = r
+  print('{', end=' ')
+  print(f'{r:4d}:{top(r):4d}', end=' ')
+  while up[r] != s:
+    r = up[r]
+    print(f'{r:4d}:{top(r):4d}', end=' ')
+  print('}', end=' ')
 
 
 def mrv(i):
