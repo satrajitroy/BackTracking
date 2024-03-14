@@ -125,7 +125,7 @@ def retry_level():
       p -= 1
       i = top(x[l])
       x[l] = down[x[l]]
-      try_l(i)  # backtrack(i)
+      try_l(i)
 
 
 def retry_l(i):
@@ -456,7 +456,7 @@ def run():
 if __name__ == "__main__":
   sys.setrecursionlimit(1 << 16)
   now = time_ns()
-  N = 4
+  N = 7
   x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1), lambda l, n, t, x: t > 1 + max(x[0:l]), lambda t, n, k: bool(t < k),
            lambda l, n, k: l <= n)  # partition
 
