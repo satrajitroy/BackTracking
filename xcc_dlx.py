@@ -72,7 +72,7 @@ def level_l():
   i = right[0]
   if i == 0:
     visit()
-    next_l()
+    next_l(i)
   else:
     i = mrv(i)
     cover(i)
@@ -94,8 +94,9 @@ def try_level():
     else:
       cover(j)
       p += 1
-      l += 1
-      level_l()
+
+    l += 1
+    level_l()
 
 
 def try_l(i):
@@ -106,7 +107,7 @@ def try_l(i):
   else:
     try_level()
 
-  retry_l()
+  retry_l(i)
 
 
 def top(p):
@@ -127,26 +128,26 @@ def retry_level():
       try_l(i)  # backtrack(i)
 
 
-def retry_l():
+def retry_l(i):
   # print(f'{retry_l.__name__} l: {l}')
-  i = retry_level()
+  retry_level()
   backtrack(top(x[l]))
 
 
 def backtrack(i):
   # print(backtrack.__name__)
   uncover(i)
-  next_l()
+  next_l(i)
 
 
-def next_l():
+def next_l(i):
   global l
   # print(f"{next_l.__name__} l: {l}")
   if l == 0:
     sys.exit(0)
   else:
     l -= 1
-    retry_l()
+    retry_l(i)
 
 
 def cover(i):
