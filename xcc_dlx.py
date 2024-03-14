@@ -11,36 +11,38 @@ from backtrack import test
 
 
 def visit():
-  print(f"{visit.__name__}: up:  {len(up):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(up))}")
-  print(f"{visit.__name__}: l: {l} {[x[i] for i in range(l)]}", end=' -> ')
+  # print(f"{visit.__name__}: _top:  {len(_top):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(_top))}")
+  # print(f"{visit.__name__}:   up:  {  len(up):4d}: {' '.join(f'{i:4d}:{v:4d}' for i, v in enumerate(up))}")
+  # print(f"{visit.__name__}: l: {l} {[x[i] for i in range(l)]}", end=' -> ')
   for j in range(l):
     r = x[j]
     while True:
       r += 1
       if top(r) < 0:
+        print(f'{-top(r):4d}', end=' ')
         break
 
     s = r = up[r]
-    print('[', end=' ')
+    # print('[', end=' ')
     while top(s) > 0:
-      print(f'{top(s):4d}', end=' ')
-      trace(s)
+      # print(f'{top(s):4d}', end=' ')
+      # trace(s, up)
       s += 1
 
-    print(']', end=' ')
+    # print(']', end=' ')
 
   print()
 
 
-def trace(r):
+def trace(r, x):
   while top(r) != 0:
-    r = up[r]
+    r = x[r]
 
   s = r
   print('{', end=' ')
   print(f'{r:4d}:{top(r):4d}', end=' ')
-  while up[r] != s:
-    r = up[r]
+  while x[r] != s:
+    r = x[r]
     print(f'{r:4d}:{top(r):4d}', end=' ')
   print('}', end=' ')
 
@@ -83,6 +85,7 @@ def level_l():
 
 
 def try_level():
+  global l
   p = x[l] + 1
   while p != x[l]:
     j = top(p)
@@ -91,6 +94,8 @@ def try_level():
     else:
       cover(j)
       p += 1
+    l += 1
+    level_l()
 
 
 def try_l(i):
@@ -100,8 +105,8 @@ def try_l(i):
     backtrack(i)
   else:
     try_level()
-    l += 1
-    level_l()
+
+  retry_l()
 
 
 def top(p):
@@ -117,16 +122,15 @@ def retry_level():
     else:
       uncover(j)
       p -= 1
-
-  i = top(x[l])
-  x[l] = down[x[l]]
-  return i
+      i = top(x[l])
+      x[l] = down[x[l]]
+      try_l(i)  # backtrack(i)
 
 
 def retry_l():
   # print(f'{retry_l.__name__} l: {l}')
   i = retry_level()
-  try_l(i)  # backtrack(i)
+  backtrack(top(x[l]))
 
 
 def backtrack(i):
@@ -168,7 +172,8 @@ def hide(p):
       down[u] = d
       up[d] = u
       _len[X] -= 1
-      q += 1  # print(f"{hide.__name__} hiding {p} q: {q}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
+      q += 1
+      # print(f"{hide.__name__} hiding {p} q: {q}\ntop: {top}\nup: {up}\ndown: {down}\nlength: {length}")
     else:
       q = u
 
@@ -188,13 +193,13 @@ def uncover(i):
 def unhide(p):
   q = p - 1
   while q != p:
-    x = top(q)
+    X = top(q)
     u = up[q]
     d = down[q]
-    if x > 0:
+    if X > 0:
       down[u] - q
       up[d] = q
-      _len[x] += 1
+      _len[X] += 1
       q -= 1
     else:
       q = d
@@ -352,8 +357,8 @@ def specified(N, items):
   print("Serialized size: " + "{:,}".format((bytes.seek(0, io.SEEK_END))))
   bytes.seek(0)  # reset the stream position
 
-  # for line in bytes:
-  #   print(line.decode())  # decode bytes to string
+  for line in bytes:
+    print(line.decode())  # decode bytes to string
 
   print("Memory used after writing options: " + "{:,}".format(mem - virtual_memory().available))
   return bytes
@@ -413,10 +418,12 @@ def run():
           else:
             cover(j)
             p += 1
+            l += 1
+            enter_level = True
+            exit_level = False
+            break
 
-        l += 1
-        enter_level = True
-        exit_level = False
+      if p == x[l]:
         break
 
       if enter_level:
@@ -429,19 +436,20 @@ def run():
         sys.exit(0)  # no more levels to backtrack, we're done
       l -= 1
 
-    # X6. [Try again.]
-    p = x[l] - 1
-    while p != x[l]:
-      j = top(p)
-      if j <= 0:
-        p = down[p]
-      else:
-        uncover(j)
-        p -= 1
-    i = top(x[l])
-    x[l] = down[x[l]]
-    enter_level = False
-    exit_level = False
+    else:
+      # X6. [Try again.]
+      p = x[l] - 1
+      while p != x[l]:
+        j = top(p)
+        if j <= 0:
+          p = down[p]
+        else:
+          uncover(j)
+          p -= 1
+      i = top(x[l])
+      x[l] = down[x[l]]
+      enter_level = False
+      exit_level = False
 
 
 if __name__ == "__main__":
@@ -451,7 +459,7 @@ if __name__ == "__main__":
   x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1), lambda l, n, t, x: t > 1 + max(x[0:l]), lambda t, n, k: bool(t < k),
            lambda l, n, k: l <= n)  # partition
 
-  items = [tuple(convert_rgs(y)) for y in sample(x, len(x))]
+  items = [tuple(convert_rgs(y)) for y in sample(x[1:], len(x) - 1)]
   bytes = specified(N, items)
   print("Generate: " + "{:,}".format(int((time_ns() - now) // 1e6)))
   now = time_ns()
@@ -459,6 +467,6 @@ if __name__ == "__main__":
   l = 0
   print("Setup: " + "{:,}".format(int((time_ns() - now) // 1e6)))
 
-  # level_l()
+  level_l()
 
-  run()
+  #run()
