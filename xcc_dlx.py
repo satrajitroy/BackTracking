@@ -94,8 +94,8 @@ def try_level():
     else:
       cover(j)
       p += 1
-    l += 1
-    level_l()
+      l += 1
+      level_l()
 
 
 def try_l(i):
