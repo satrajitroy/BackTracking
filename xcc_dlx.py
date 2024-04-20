@@ -47,10 +47,11 @@ def trace(r, x):
   print('}', end=' ')
 
 
-def mrv(i):
+def mrv():
+  global i
   # print(f"{mrv.__name__}\nlength: {_len}\nleft. : {left}\nright : {right}")
   theta = sys.maxsize
-  p = i
+  p = right[0]
   while p != 0:
     # print(f"{mrv.__name__} p: {p}")
     lamda = _len[p]
@@ -63,25 +64,25 @@ def mrv(i):
     i = p
     p = right[p]
 
-  # print(f"{mrv.__name__} i: {i}")
   return i
 
 
 def level_l():
+  global i
   # print(f'{level_l.__name__} l: {l} right: {right}')
   i = right[0]
   if i == 0:
     visit()
-    next_l(i)
+    next_l()
   else:
-    i = mrv(i)
+    i = mrv()
     cover(i)
     if l > N:
       print(f'Termination error: l: {l} too large already')
       sys.exit(1)
     x[l] = down[i]
     # print(f"{level_l.__name__} l: {l} covered {i} x[{l}]: {x[l]} right: {right}")
-    try_l(i)
+    try_l()
 
 
 def try_level():
@@ -99,15 +100,15 @@ def try_level():
     level_l()
 
 
-def try_l(i):
-  global l
+def try_l():
+  global i, l
   # print(f"{try_l.__name__} l: {l}\ntop: {_top}\nup: {up}")
   if x[l] == i:
-    backtrack(i)
+    backtrack()
   else:
     try_level()
 
-  retry_l(i)
+  retry_l()
 
 
 def top(p):
@@ -125,29 +126,31 @@ def retry_level():
       p -= 1
       i = top(x[l])
       x[l] = down[x[l]]
-      try_l(i)
+      try_l()
 
 
-def retry_l(i):
+def retry_l():
+  global i
   # print(f'{retry_l.__name__} l: {l}')
   retry_level()
-  backtrack(top(x[l]))
+  backtrack()
 
 
-def backtrack(i):
+def backtrack():
+  global i
   # print(backtrack.__name__)
   uncover(i)
-  next_l(i)
+  next_l()
 
 
-def next_l(i):
-  global l
+def next_l():
+  global i, l
   # print(f"{next_l.__name__} l: {l}")
   if l == 0:
     sys.exit(0)
   else:
     l -= 1
-    retry_l(i)
+    retry_l()
 
 
 def cover(i):
@@ -456,7 +459,7 @@ def run():
 if __name__ == "__main__":
   sys.setrecursionlimit(1 << 16)
   now = time_ns()
-  N = 7
+  N = 10
   x = test(N, N, N, 1, 1, 0, 1, [0] * (N + 1), lambda l, n, t, x: t > 1 + max(x[0:l]), lambda t, n, k: bool(t < k),
            lambda l, n, k: l <= n)  # partition
 
